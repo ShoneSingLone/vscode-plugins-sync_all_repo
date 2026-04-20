@@ -47,7 +47,7 @@ function loadConfig() {
 // Main sync runner
 // ──────────────────────────────────────────────
 
-async function runSync(mode: SyncMode) {
+async function runSync(mode: SyncMode, targetPaths?: string[]) {
   if (isSyncing) {
     vscode.window.showWarningMessage("⚠️ 同步正在进行中，请稍候...");
     logger.warn("Sync rejected: already syncing", { mode });
@@ -56,10 +56,13 @@ async function runSync(mode: SyncMode) {
   isSyncing = true;
 
   const cfg = loadConfig();
-  const repoPaths = cfg.repoPaths || [];
+  const allRepoPaths = cfg.repoPaths || [];
+  const repoPaths = targetPaths || allRepoPaths;
+
   logger.info("Sync started", {
     mode,
     repoCount: repoPaths.length,
+    isPartial: !!targetPaths,
     pullStrategy: cfg.pullStrategy || "merge",
     pushStrategy: cfg.pushStrategy || "normal",
     commitBeforePush: cfg.commitBeforePush || false,
@@ -86,18 +89,14 @@ async function runSync(mode: SyncMode) {
   let result: Awaited<ReturnType<typeof syncAllRepos>> | undefined;
 
   await showProgressNotification(
-    `🔄 Sync All Repos — ${modeLabel[mode]}所有仓库`,
+    `🔄 Sync All Repos — ${modeLabel[mode]}${targetPaths ? "选定" : "所有"}仓库`,
     async (progress) => {
-      progress.report({ message: "扫描仓库目录..." });
+      progress.report({ message: "准备同步..." });
 
-      // 1. Use configured repo paths
       if (repoPaths.length === 0) {
-        vscode.window.showWarningMessage(
-          `⚠️ 未找到任何 Git 仓库`,
-        );
+        vscode.window.showWarningMessage(`⚠️ 未找到任何 Git 仓库`);
         isSyncing = false;
         statusBar.setIdle();
-        // 显示空结果面板
         showResultPanel({
           total: 0,
           succeeded: 0,
@@ -110,13 +109,12 @@ async function runSync(mode: SyncMode) {
       }
 
       progress.report({
-        message: `找到 ${repoPaths.length} 个仓库，开始${modeLabel[mode]}...`,
+        message: `开始${modeLabel[mode]} ${repoPaths.length} 个仓库...`,
       });
 
       let completed = 0;
       const increment = 100 / repoPaths.length;
 
-      // 2. Sync
       result = await syncAllRepos(
         repoPaths,
         mode,
@@ -134,14 +132,6 @@ async function runSync(mode: SyncMode) {
               increment,
               message: `[${completed}/${repoPaths.length}] ${info.name} — ${info.message || info.status}`,
             });
-            logger.debug("Repo progress", {
-              name: info.name,
-              status: info.status,
-              message: info.message,
-              ahead: info.ahead,
-              behind: info.behind,
-              hasUncommitted: info.hasUncommitted,
-            });
           }
         },
       );
@@ -156,14 +146,8 @@ async function runSync(mode: SyncMode) {
     return;
   }
 
-  logger.info("Sync finished", {
-    mode,
-    total: result.total,
-    succeeded: result.succeeded,
-    failed: result.failed,
-    skipped: result.skipped,
-    durationMs: result.duration,
-  });
+  // If this was a partial sync, we might want to merge it with the last full status
+  // For now, just show the result of what we just did.
 
   if (result.failed > 0) {
     statusBar.setError(result.failed);
@@ -188,7 +172,7 @@ async function runSync(mode: SyncMode) {
 }
 
 function showResultPanel(result: Parameters<typeof SyncMainPanel.show>[1]) {
-  SyncMainPanel.show(extensionContext!, result, "result");
+  SyncMainPanel.show(extensionContext!, result);
 }
 
 // ──────────────────────────────────────────────
@@ -208,28 +192,32 @@ async function showStatus() {
   await showProgressNotification("🔍 扫描仓库状态...", async (progress) => {
     progress.report({ message: `检查 ${repoPaths.length} 个仓库...` });
 
+    const startTime = Date.now();
     const repos: RepoInfo[] = [];
-    for (const p of repoPaths) {
-      const info = await getRepoInfo(p);
-      repos.push(info);
+    const concurrency = cfg.concurrency || 3;
+    
+    // Batch processing to be faster
+    for (let i = 0; i < repoPaths.length; i += concurrency) {
+      const batch = repoPaths.slice(i, i + concurrency);
+      const results = await Promise.all(batch.map(p => getRepoInfo(p)));
+      repos.push(...results);
+      progress.report({ 
+        increment: (batch.length / repoPaths.length) * 100,
+        message: `检查中... [${Math.min(i + concurrency, repoPaths.length)}/${repoPaths.length}]`
+      });
     }
-    logger.info("ShowStatus finished", {
-      repoCount: repos.length,
-      succeeded: repos.filter((r) => r.status === "success").length,
-      failed: repos.filter((r) => r.status === "error").length,
-      skipped: repos.filter((r) => r.status === "skipped").length,
-    });
 
-    const fakeResult = {
+    const duration = Date.now() - startTime;
+    const result = {
       total: repos.length,
       succeeded: repos.filter((r) => r.status === "success").length,
       failed: repos.filter((r) => r.status === "error").length,
       skipped: repos.filter((r) => r.status === "skipped").length,
       repos,
-      duration: 0,
+      duration,
     };
 
-    SyncResultPanel.show(extensionContext!, fakeResult);
+    SyncMainPanel.show(extensionContext!, result);
   });
 }
 
@@ -278,8 +266,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("shone.sing.lone.syncrepos.pullAll", () =>
       runSync("pull-only"),
     ),
-    vscode.commands.registerCommand("shone.sing.lone.syncrepos.pushAll", () =>
-      runSync("push-only"),
+    vscode.commands.registerCommand(
+      "shone.sing.lone.syncrepos.pushAll",
+      () => runSync("push-only"),
+    ),
+    vscode.commands.registerCommand(
+      "shone.sing.lone.syncrepos.syncSelected",
+      (paths: string[], mode: SyncMode = "full") => runSync(mode, paths),
     ),
     vscode.commands.registerCommand(
       "shone.sing.lone.syncrepos.showStatus",

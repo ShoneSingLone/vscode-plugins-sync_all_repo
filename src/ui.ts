@@ -10,7 +10,6 @@ import { logger } from "./logger";
 
 export class SyncStatusBar {
   private item: vscode.StatusBarItem;
-  private animFrame = 0;
   private animTimer: NodeJS.Timeout | undefined;
 
   constructor() {
@@ -72,7 +71,7 @@ export class SyncStatusBar {
 }
 
 // ──────────────────────────────────────────────
-// Unified Main Panel with Tabs
+// Unified Main Panel
 // ──────────────────────────────────────────────
 
 export class SyncMainPanel {
@@ -80,33 +79,20 @@ export class SyncMainPanel {
   private panel: vscode.WebviewPanel;
   private context: vscode.ExtensionContext;
   private lastResult: SyncResult | null = null;
-  private currentTab: "config" | "result";
 
-  static show(
-    context: vscode.ExtensionContext,
-    result?: SyncResult,
-    defaultTab?: "config" | "result",
-  ) {
+  static show(context: vscode.ExtensionContext, result?: SyncResult) {
     if (SyncMainPanel.current) {
       SyncMainPanel.current.panel.reveal();
       if (result) {
         SyncMainPanel.current.updateResult(result);
       }
-      if (defaultTab) {
-        SyncMainPanel.current.switchTab(defaultTab);
-      }
     } else {
-      SyncMainPanel.current = new SyncMainPanel(context, result, defaultTab);
+      SyncMainPanel.current = new SyncMainPanel(context, result);
     }
   }
 
-  private constructor(
-    context: vscode.ExtensionContext,
-    result?: SyncResult,
-    defaultTab: "config" | "result" = "config",
-  ) {
+  private constructor(context: vscode.ExtensionContext, result?: SyncResult) {
     this.context = context;
-    this.currentTab = defaultTab;
     if (result) {
       this.lastResult = result;
     }
@@ -123,7 +109,7 @@ export class SyncMainPanel {
     this.panel.webview.onDidReceiveMessage((msg) => {
       this.handleMessage(msg);
     });
-    this.update(this.currentTab);
+    this.update();
   }
 
   private handleMessage(msg: any) {
@@ -134,6 +120,13 @@ export class SyncMainPanel {
           "vscode.openFolder",
           vscode.Uri.file(msg.path),
           { forceNewWindow: false },
+        );
+        break;
+      case "sync":
+        vscode.commands.executeCommand(
+          "shone.sing.lone.syncrepos.syncSelected",
+          msg.paths,
+          msg.mode,
         );
         break;
       case "syncAll":
@@ -157,14 +150,11 @@ export class SyncMainPanel {
           "shone.sing.lone",
         );
         break;
-      case "runSync":
-        this.runSync(msg.data);
-        break;
       case "rescan":
         this.rescan(msg.depth, msg.paths);
         break;
-      case "switchTab":
-        this.currentTab = msg.tab;
+      case "refresh":
+        vscode.commands.executeCommand("shone.sing.lone.syncrepos.showStatus");
         break;
     }
   }
@@ -194,7 +184,6 @@ export class SyncMainPanel {
         fs.mkdirSync(configDir, { recursive: true });
       }
       fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
-      vscode.window.showInformationMessage("✅ 配置已保存！");
       logger.info("Config saved (webview)", { configPath });
     } catch (error) {
       logger.error("Failed to save config (webview)", error);
@@ -215,13 +204,6 @@ export class SyncMainPanel {
         paths: uris.map((u) => u.fsPath),
       });
     }
-  }
-
-  private async runSync(data: any) {
-    // 先保存配置
-    await this.saveConfig(data);
-    // 然后执行同步
-    vscode.commands.executeCommand("shone.sing.lone.syncrepos.syncAll");
   }
 
   private rescan(depth: number, paths: string[]) {
@@ -255,25 +237,18 @@ export class SyncMainPanel {
       command: "setPaths",
       paths: uniqueRepos,
     });
-  }
 
-  private switchTab(tab: "config" | "result") {
-    this.currentTab = tab;
-    this.panel.webview.postMessage({ command: "switchTab", tab });
+    // After rescan, refresh the status to populate the table
+    vscode.commands.executeCommand("shone.sing.lone.syncrepos.showStatus");
   }
 
   private updateResult(result: SyncResult) {
     this.lastResult = result;
-    this.currentTab = "result";
-    this.update(this.currentTab);
+    this.update();
   }
 
-  private update(defaultTab: "config" | "result") {
-    this.panel.webview.html = buildUnifiedHtml(
-      this.context,
-      this.lastResult,
-      defaultTab,
-    );
+  private update() {
+    this.panel.webview.html = buildUnifiedHtml(this.context, this.lastResult);
   }
 
   dispose() {
@@ -284,7 +259,7 @@ export class SyncMainPanel {
 // Keep SyncResultPanel for backward compatibility
 export class SyncResultPanel {
   static show(context: vscode.ExtensionContext, result: SyncResult) {
-    SyncMainPanel.show(context, result, "result");
+    SyncMainPanel.show(context, result);
   }
 }
 
@@ -310,305 +285,37 @@ export function showProgressNotification(
 }
 
 // ──────────────────────────────────────────────
-// HTML generator for the webview
+// HTML generator helpers
 // ──────────────────────────────────────────────
 
 function statusIcon(status: string): string {
   switch (status) {
-    case "success":
-      return "✅";
-    case "error":
-      return "❌";
-    case "skipped":
-      return "⏭️";
-    case "pulling":
-      return "⬇️";
-    case "pushing":
-      return "⬆️";
-    case "committing":
-      return "📝";
-    default:
-      return "⏳";
+    case "success": return "✅";
+    case "error": return "❌";
+    case "skipped": return "⏭️";
+    case "pulling": return "⬇️";
+    case "pushing": return "⬆️";
+    case "committing": return "📝";
+    default: return "⏳";
   }
 }
 
 function statusColor(status: string): string {
   switch (status) {
-    case "success":
-      return "#4caf50";
-    case "error":
-      return "#f44336";
-    case "skipped":
-      return "#9e9e9e";
-    default:
-      return "#2196f3";
+    case "success": return "#a6e3a1";
+    case "error": return "#f38ba8";
+    case "skipped": return "#6c7086";
+    default: return "#89b4fa";
   }
-}
-
-function buildHtml(result: SyncResult): string {
-  const rows = result.repos
-    .map(
-      (r) => `
-    <tr class="repo-row" data-status="${r.status}">
-      <td class="icon">${statusIcon(r.status)}</td>
-      <td class="name" title="${r.path}">${r.name}</td>
-      <td class="branch">${r.branch}</td>
-      <td class="ahead-behind">
-        ${r.ahead > 0 ? `<span class="badge up">↑${r.ahead}</span>` : ""}
-        ${r.behind > 0 ? `<span class="badge down">↓${r.behind}</span>` : ""}
-      </td>
-      <td class="message" style="color:${statusColor(r.status)}">${r.message || ""}</td>
-      <td class="action">
-        <button onclick="openRepo('${r.path.replace(/\\/g, "\\\\")}')">打开</button>
-      </td>
-    </tr>`,
-    )
-    .join("");
-
-  const successRate =
-    result.total > 0 ? Math.round((result.succeeded / result.total) * 100) : 0;
-
-  return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sync All Repos</title>
-<style>
-  :root {
-    --bg: #1e1e2e;
-    --surface: #2a2a3e;
-    --border: #3e3e5e;
-    --text: #cdd6f4;
-    --muted: #6c7086;
-    --green: #a6e3a1;
-    --red: #f38ba8;
-    --yellow: #f9e2af;
-    --blue: #89b4fa;
-    --mauve: #cba6f7;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-size: 13px;
-    padding: 24px;
-    min-height: 100vh;
-  }
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--mauve);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 12px; }
-  .stats {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .stat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    text-align: center;
-    min-width: 90px;
-  }
-  .stat .num { font-size: 26px; font-weight: 700; line-height: 1; }
-  .stat .label { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .stat.success .num { color: var(--green); }
-  .stat.error   .num { color: var(--red); }
-  .stat.skipped .num { color: var(--muted); }
-  .stat.total   .num { color: var(--blue); }
-  .stat.time    .num { font-size: 18px; color: var(--yellow); }
-  .progress-bar {
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--mauve), var(--blue));
-    border-radius: 3px;
-    transition: width .5s ease;
-    width: ${successRate}%;
-  }
-  .toolbar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .toolbar input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
-    outline: none;
-    flex: 1;
-    min-width: 180px;
-  }
-  .toolbar input:focus { border-color: var(--mauve); }
-  .filter-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 6px;
-    padding: 5px 12px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .filter-btn:hover, .filter-btn.active { background: var(--mauve); color: #1e1e2e; border-color: var(--mauve); }
-  .sync-again {
-    background: var(--blue);
-    color: #1e1e2e;
-    border: none;
-    border-radius: 8px;
-    padding: 7px 18px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-  .sync-again:hover { opacity: .85; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--surface);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  thead { background: #12121e; }
-  th {
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-  td { padding: 9px 14px; border-top: 1px solid var(--border); vertical-align: middle; }
-  .repo-row:hover { background: rgba(255,255,255,.03); }
-  .icon { width: 28px; text-align: center; font-size: 14px; }
-  .name { font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
-  .branch { color: var(--yellow); font-family: monospace; font-size: 11px; }
-  .badge {
-    display: inline-block;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    margin-right: 2px;
-  }
-  .badge.up { background: rgba(166,227,161,.15); color: var(--green); }
-  .badge.down { background: rgba(243,139,168,.15); color: var(--red); }
-  .message { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
-  td.action button {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--blue);
-    border-radius: 5px;
-    padding: 3px 10px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all .15s;
-  }
-  td.action button:hover { background: var(--blue); color: #1e1e2e; }
-  .no-data { text-align: center; color: var(--muted); padding: 40px; }
-</style>
-</head>
-<body>
-<h1>🔄 Sync All Repos</h1>
-<div class="subtitle">同步完成 · 耗时 ${(result.duration / 1000).toFixed(1)}s · ${new Date().toLocaleString("zh-CN")}</div>
-
-<div class="stats">
-  <div class="stat total"><div class="num">${result.total}</div><div class="label">总计</div></div>
-  <div class="stat success"><div class="num">${result.succeeded}</div><div class="label">成功</div></div>
-  <div class="stat error"><div class="num">${result.failed}</div><div class="label">失败</div></div>
-  <div class="stat skipped"><div class="num">${result.skipped}</div><div class="label">跳过</div></div>
-  <div class="stat time"><div class="num">${successRate}%</div><div class="label">成功率</div></div>
-</div>
-
-<div class="progress-bar"><div class="progress-fill"></div></div>
-
-<div class="toolbar">
-  <input type="text" id="search" placeholder="🔍 搜索仓库名..." oninput="filterTable()" />
-  <button class="filter-btn active" onclick="setFilter('all',this)">全部</button>
-  <button class="filter-btn" onclick="setFilter('success',this)">成功</button>
-  <button class="filter-btn" onclick="setFilter('error',this)">失败</button>
-  <button class="filter-btn" onclick="setFilter('skipped',this)">跳过</button>
-  <button class="sync-again" onclick="syncAgain()">🔄 再次同步</button>
-</div>
-
-<table id="repoTable">
-  <thead>
-    <tr>
-      <th></th>
-      <th>仓库</th>
-      <th>分支</th>
-      <th>进度</th>
-      <th>消息</th>
-      <th>操作</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody">
-    ${rows || '<tr><td colspan="6" class="no-data">没有仓库数据</td></tr>'}
-  </tbody>
-</table>
-
-<script>
-  const vscode = acquireVsCodeApi();
-  let currentFilter = 'all';
-
-  function openRepo(p) {
-    vscode.postMessage({ command: 'openRepo', path: p });
-  }
-  function syncAgain() {
-    vscode.postMessage({ command: 'syncAll' });
-  }
-  function setFilter(f, btn) {
-    currentFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterTable();
-  }
-  function filterTable() {
-    const q = document.getElementById('search').value.toLowerCase();
-    document.querySelectorAll('#tableBody tr.repo-row').forEach(row => {
-      const name = row.querySelector('.name')?.textContent?.toLowerCase() ?? '';
-      const status = row.dataset.status ?? '';
-      const matchFilter = currentFilter === 'all' || status === currentFilter;
-      const matchSearch = name.includes(q);
-      row.style.display = matchFilter && matchSearch ? '' : 'none';
-    });
-  }
-</script>
-</body>
-</html>`;
 }
 
 // ──────────────────────────────────────────────
-// Unified HTML generator for tabbed interface
+// Unified HTML generator
 // ──────────────────────────────────────────────
 
 function buildUnifiedHtml(
   context: vscode.ExtensionContext,
   result: SyncResult | null,
-  defaultTab: "config" | "result" = "config",
 ): string {
   const configPath = path.join(context.globalStorageUri.fsPath, "config.json");
   let cfg: any;
@@ -624,96 +331,47 @@ function buildUnifiedHtml(
     cfg = require("./config").getDefaultConfig();
   }
 
-  const allRepos = cfg.repoPaths || [];
-  const pathItems = allRepos
+  const allRepos = result ? result.repos : (cfg.repoPaths || []).map((p: string) => ({
+    path: p,
+    name: path.basename(p),
+    branch: "-",
+    hasRemote: false,
+    status: "idle",
+    message: "",
+    ahead: 0,
+    behind: 0,
+    hasUncommitted: false,
+    remotes: [],
+  }));
+
+  const rows = allRepos
     .map(
-      (p: string, i: number) =>
-        '<div class="path-item" id="path-' +
-        i +
-        '">' +
-        '<span class="path-text" title="' +
-        p.replace(/"/g, "&quot;") +
-        '">' +
-        p.replace(/"/g, "&quot;") +
-        "</span>" +
-        '<button class="remove-btn" onclick="removePath(' +
-        i +
-        ')">✕</button>' +
-        "</div>",
+      (r: any) => `
+    <tr class="repo-row" data-status="${r.status}" data-path="${r.path.replace(/\\/g, "\\\\")}">
+      <td class="checkbox-col"><input type="checkbox" class="repo-checkbox" onchange="updateBulkUI()"></td>
+      <td class="icon-col">${statusIcon(r.status)}</td>
+      <td class="name-col" title="${r.path}">${r.name}</td>
+      <td class="branch-col">${r.branch}</td>
+      <td class="remotes-col" title="${r.remotes.join(", ")}">${r.remotes.length > 0 ? r.remotes.join(", ") : "-"}</td>
+      <td class="ahead-behind-col">
+        ${r.ahead > 0 ? `<span class="badge up">↑${r.ahead}</span>` : ""}
+        ${r.behind > 0 ? `<span class="badge down">↓${r.behind}</span>` : ""}
+        ${!r.ahead && !r.behind ? "-" : ""}
+      </td>
+      <td class="message-col" style="color:${statusColor(r.status)}">${r.message || "-"}</td>
+      <td class="action-col">
+        <div class="row-actions">
+          <button title="同步" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'full')">🔄</button>
+          <button title="拉取" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'pull-only')">⬇️</button>
+          <button title="推送" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'push-only')">⬆️</button>
+          <button title="打开" onclick="openRepo('${r.path.replace(/\\/g, "\\\\")}')">📂</button>
+        </div>
+      </td>
+    </tr>`,
     )
     .join("");
 
-  const excludeVal = (
-    cfg.excludePatterns || ["node_modules", ".git", "vendor", "dist"]
-  ).join(", ");
-
-  let resultHtml = "";
-  if (result) {
-    const rows = result.repos
-      .map(
-        (r) => `
-      <tr class="repo-row" data-status="${r.status}">
-        <td class="icon">${statusIcon(r.status)}</td>
-        <td class="name" title="${r.path}">${r.name}</td>
-        <td class="branch">${r.branch}</td>
-        <td class="ahead-behind">
-          ${r.ahead > 0 ? `<span class="badge up">↑${r.ahead}</span>` : ""}
-          ${r.behind > 0 ? `<span class="badge down">↓${r.behind}</span>` : ""}
-        </td>
-        <td class="message" style="color:${statusColor(r.status)}">${r.message || ""}</td>
-        <td class="action">
-          <button onclick="openRepo('${r.path.replace(/\\/g, "\\\\")}')">打开</button>
-        </td>
-      </tr>`,
-      )
-      .join("");
-
-    const successRate =
-      result.total > 0
-        ? Math.round((result.succeeded / result.total) * 100)
-        : 0;
-
-    resultHtml = `
-    <div class="result-content">
-      <h1>🔄 Sync All Repos</h1>
-      <div class="subtitle">同步完成 · 耗时 ${(result.duration / 1000).toFixed(1)}s · ${new Date().toLocaleString("zh-CN")}</div>
-
-      <div class="stats">
-        <div class="stat total"><div class="num">${result.total}</div><div class="label">总计</div></div>
-        <div class="stat success"><div class="num">${result.succeeded}</div><div class="label">成功</div></div>
-        <div class="stat error"><div class="num">${result.failed}</div><div class="label">失败</div></div>
-        <div class="stat skipped"><div class="num">${result.skipped}</div><div class="label">跳过</div></div>
-        <div class="stat time"><div class="num">${successRate}%</div><div class="label">成功率</div></div>
-      </div>
-
-      <div class="progress-bar"><div class="progress-fill" style="width: ${successRate}%"></div></div>
-
-      <div class="toolbar">
-        <input type="text" id="search" placeholder="🔍 搜索仓库名..." oninput="filterTable()" />
-        <button class="filter-btn active" onclick="setFilter('all',this)">全部</button>
-        <button class="filter-btn" onclick="setFilter('success',this)">成功</button>
-        <button class="filter-btn" onclick="setFilter('error',this)">失败</button>
-        <button class="filter-btn" onclick="setFilter('skipped',this)">跳过</button>
-        <button class="sync-again" onclick="syncAgain()">🔄 再次同步</button>
-      </div>
-
-      <table id="repoTable">
-        <thead>
-          <tr>
-            <th></th>
-            <th>仓库</th>
-            <th>分支</th>
-            <th>进度</th>
-            <th>消息</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          ${rows || '<tr><td colspan="6" class="no-data">没有仓库数据</td></tr>'}
-        </tbody>
-      </table>
-    </div>`;
-  }
+  const successRate = result && result.total > 0 ? Math.round((result.succeeded / result.total) * 100) : 0;
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -725,337 +383,259 @@ function buildUnifiedHtml(
   :root {
     --bg: #1e1e2e; --surface: #2a2a3e; --border: #3e3e5e;
     --text: #cdd6f4; --muted: #6c7086;
-    --green: #a6e3a1; --blue: #89b4fa; --mauve: #cba6f7; --red: #f38ba8;
+    --green: #a6e3a1; --blue: #89b4fa; --mauve: #cba6f7; --red: #f38ba8; --yellow: #f9e2af;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; padding: 16px; min-height: 100vh; overflow-y: scroll; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12px; padding: 12px; min-height: 100vh; overflow-y: scroll; }
   
-  /* Tabs */
-  .tabs {
-    display: flex; gap: 2px; background: var(--border); border-radius: 8px; padding: 2px; margin-bottom: 16px; overflow: hidden;
+  /* Compact Header & Config */
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 16px; flex-wrap: wrap; }
+  .title-area h1 { font-size: 16px; font-weight: 700; color: var(--mauve); display: flex; align-items: center; gap: 6px; margin: 0; }
+  .title-area .subtitle { font-size: 10px; color: var(--muted); }
+
+  .config-bar { 
+    display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; flex: 1; min-width: 300px;
   }
-  .tab {
-    flex: 1; padding: 10px 16px; text-align: center; border: none; background: transparent; color: var(--muted); cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all .2s;
+  .config-item { display: flex; align-items: center; gap: 4px; border-right: 1px solid var(--border); padding-right: 8px; height: 24px; }
+  .config-item:last-child { border-right: none; padding-right: 0; }
+  .config-item label { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .config-item select, .config-item input { 
+    background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 2px 4px; font-size: 11px; outline: none;
   }
-  .tab:hover { color: var(--text); }
-  .tab.active { background: var(--surface); color: var(--mauve); }
-  
-  /* Common styles */
-  h1 { font-size: 18px; font-weight: 600; color: var(--mauve); margin-bottom: 4px; }
-  .subtitle { color: var(--muted); margin-bottom: 16px; font-size: 12px; }
-  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-  .section-title { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  
-  /* Config page */
-  .field { margin-bottom: 8px; }
-  .field:last-child { margin-bottom: 0; }
-  .field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-  input[type=text], input[type=number], select, textarea {
-    width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
-    border-radius: 6px; padding: 6px 10px; font-size: 12px; outline: none; transition: border-color .15s;
+  .config-item input[type=number] { width: 36px; }
+  .config-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
+
+  /* Stats Bar */
+  .stats-bar { 
+    display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;
   }
-  input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus { border-color: var(--mauve); }
-  textarea { resize: vertical; min-height: 60px; font-family: monospace; }
-  .path-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; max-height: 120px; overflow-y: auto; }
-  .path-item { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; gap: 6px; }
-  .path-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-family: monospace; }
-  .remove-btn { background: none; border: none; color: var(--red); cursor: pointer; font-size: 12px; padding: 0 4px; }
-  .add-btn { background: var(--surface); border: 1px dashed var(--border); color: var(--blue); border-radius: 6px; padding: 6px 12px; font-size: 11px; cursor: pointer; width: 100%; transition: all .15s; }
-  .add-btn:hover { border-color: var(--blue); background: rgba(137,180,250,.08); }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
-  .toggle-row label { font-size: 12px; color: var(--text); }
-  .toggle { position: relative; display: inline-block; width: 36px; height: 18px; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 20px; transition: .2s; }
-  .slider::before { content: ''; position: absolute; height: 12px; width: 12px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
-  input:checked + .slider { background: var(--mauve); }
-  input:checked + .slider::before { transform: translateX(18px); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
-  .btn-save { background: var(--mauve); color: #1e1e2e; border: none; border-radius: 6px; padding: 8px 20px; font-weight: 700; font-size: 12px; cursor: pointer; flex: 1; min-width: 120px; }
-  .btn-save:hover { opacity: .88; }
-  .btn-settings { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 7px 14px; font-size: 11px; cursor: pointer; }
-  .btn-settings:hover { color: var(--text); border-color: var(--text); }
-  .btn-run { background: var(--green); color: #1e1e2e; border: none; border-radius: 6px; padding: 10px 24px; font-weight: 700; font-size: 13px; cursor: pointer; flex: 1; min-width: 180px; }
-  .btn-run:hover { opacity: .88; }
-  .run-actions { display: flex; gap: 8px; justify-content: center; margin: 12px 0; flex-wrap: wrap; }
-  .btn-run-secondary { background: var(--blue); color: #1e1e2e; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; font-size: 12px; cursor: pointer; }
-  .btn-run-secondary:hover { opacity: .88; }
-  .hint { font-size: 10px; color: var(--muted); margin-top: 3px; }
-  .path-list::-webkit-scrollbar { width: 6px; }
-  .path-list::-webkit-scrollbar-track { background: var(--bg); border-radius: 3px; }
-  .path-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .path-list::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-  
-  /* Result page */
-  .stats {
-    display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+  .stat-pill { 
+    background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; display: flex; gap: 6px; align-items: center;
   }
-  .stat {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; text-align: center; min-width: 80px;
+  .stat-pill .val { font-weight: 700; }
+  .stat-pill.success .val { color: var(--green); }
+  .stat-pill.error .val { color: var(--red); }
+  .stat-pill.total .val { color: var(--blue); }
+
+  .progress-mini { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 100px; }
+  .progress-fill { height: 100%; background: var(--mauve); transition: width .3s; }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+  .bulk-actions { display: flex; gap: 6px; align-items: center; }
+  .btn { 
+    background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; transition: all .1s; display: flex; align-items: center; gap: 4px;
   }
-  .stat .num { font-size: 22px; font-weight: 700; line-height: 1; }
-  .stat .label { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .stat.success .num { color: var(--green); }
-  .stat.error   .num { color: var(--red); }
-  .stat.skipped .num { color: var(--muted); }
-  .stat.total   .num { color: var(--blue); }
-  .stat.time    .num { font-size: 16px; color: var(--yellow); }
-  .progress-bar {
-    height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 16px;
+  .btn:hover:not(:disabled) { background: var(--border); border-color: var(--muted); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.primary { background: var(--mauve); color: #1e1e2e; border: none; font-weight: 600; }
+  .btn.primary:hover { opacity: 0.9; }
+  .btn.success { border-color: var(--green); color: var(--green); }
+  .btn.success:hover { background: rgba(166,227,161,0.1); }
+
+  .search-box { position: relative; flex: 1; max-width: 240px; }
+  .search-box input { 
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 8px 4px 24px; font-size: 11px; outline: none;
   }
-  .progress-fill {
-    height: 100%; background: linear-gradient(90deg, var(--mauve), var(--blue)); border-radius: 3px; transition: width .5s ease;
+  .search-box::before { content: '🔍'; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0.5; }
+
+  /* Table */
+  .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th { 
+    background: #12121e; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border);
   }
-  .toolbar {
-    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr.repo-row:hover { background: rgba(255,255,255,0.02); }
+
+  .checkbox-col { width: 32px; text-align: center; }
+  .icon-col { width: 28px; text-align: center; }
+  .name-col { width: 15%; font-weight: 600; }
+  .branch-col { width: 10%; color: var(--yellow); font-family: monospace; }
+  .remotes-col { width: 20%; color: var(--muted); font-size: 10px; }
+  .ahead-behind-col { width: 80px; }
+  .message-col { width: auto; font-size: 11px; }
+  .action-col { width: 140px; text-align: right; }
+
+  .badge { display: inline-block; padding: 0 4px; border-radius: 3px; font-size: 9px; font-weight: 700; }
+  .badge.up { background: rgba(166,227,161,0.1); color: var(--green); }
+  .badge.down { background: rgba(243,139,168,0.1); color: var(--red); }
+
+  .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .row-actions button { 
+    background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 4px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
   }
-  .toolbar input {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-    border-radius: 6px; padding: 6px 12px; font-size: 12px; outline: none; flex: 1; min-width: 180px;
-  }
-  .toolbar input:focus { border-color: var(--mauve); }
-  .filter-btn {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-    border-radius: 6px; padding: 5px 12px; font-size: 11px; cursor: pointer; transition: all .15s;
-  }
-  .filter-btn:hover, .filter-btn.active { background: var(--mauve); color: #1e1e2e; border-color: var(--mauve); }
-  .sync-again {
-    background: var(--blue); color: #1e1e2e; border: none; border-radius: 6px; padding: 7px 18px; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity .15s;
-  }
-  .sync-again:hover { opacity: .85; }
-  table {
-    width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 8px; overflow: hidden; border: 1px solid var(--border);
-  }
-  thead { background: #12121e; }
-  th {
-    padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
-  }
-  td { padding: 9px 14px; border-top: 1px solid var(--border); vertical-align: middle; }
-  .repo-row:hover { background: rgba(255,255,255,.03); }
-  .icon { width: 28px; text-align: center; font-size: 14px; }
-  .name { font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
-  .branch { color: var(--yellow); font-family: monospace; font-size: 11px; }
-  .badge {
-    display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 2px;
-  }
-  .badge.up { background: rgba(166,227,161,.15); color: var(--green); }
-  .badge.down { background: rgba(243,139,168,.15); color: var(--red); }
-  .message { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
-  td.action button {
-    background: transparent; border: 1px solid var(--border); color: var(--blue);
-    border-radius: 5px; padding: 3px 10px; font-size: 11px; cursor: pointer; transition: all .15s;
-  }
-  td.action button:hover { background: var(--blue); color: #1e1e2e; }
-  .no-data { text-align: center; color: var(--muted); padding: 30px; }
-  
-  /* Tab content */
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  
-  /* Responsive */
-  @media (max-width: 600px) {
-    .grid2 { grid-template-columns: 1fr; }
-    .actions { flex-direction: column; }
-    .run-actions { flex-direction: column; }
-  }
+  .row-actions button:hover { background: var(--border); }
+
+  .no-data { text-align: center; padding: 40px; color: var(--muted); }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 </style>
 </head>
 <body>
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab ${defaultTab === "config" ? "active" : ""}" onclick="switchTab('config')">⚙️ 配置</button>
-    <button class="tab ${defaultTab === "result" ? "active" : ""}" onclick="switchTab('result')">📊 结果</button>
+  <header>
+    <div class="title-area">
+      <h1>🔄 Sync All Repos</h1>
+      <div class="subtitle">${result ? `上次完成: ${new Date().toLocaleTimeString()} (耗时 ${(result.duration / 1000).toFixed(1)}s)` : '就绪'}</div>
+    </div>
+    
+    <div class="config-bar">
+      <div class="config-item">
+        <label>PULL</label>
+        <select id="pullStrategy" onchange="saveConfig()">
+          <option value="merge" ${cfg.pullStrategy === 'merge' ? 'selected' : ''}>Merge</option>
+          <option value="rebase" ${cfg.pullStrategy === 'rebase' ? 'selected' : ''}>Rebase</option>
+          <option value="ff-only" ${cfg.pullStrategy === 'ff-only' ? 'selected' : ''}>FF-Only</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>PUSH</label>
+        <select id="pushStrategy" onchange="saveConfig()">
+          <option value="normal" ${cfg.pushStrategy === 'normal' ? 'selected' : ''}>Normal</option>
+          <option value="force-with-lease" ${cfg.pushStrategy === 'force-with-lease' ? 'selected' : ''}>Force</option>
+          <option value="skip" ${cfg.pushStrategy === 'skip' ? 'selected' : ''}>Skip</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>并发</label>
+        <input type="number" id="concurrency" min="1" max="10" value="${cfg.concurrency || 3}" onchange="saveConfig()" />
+      </div>
+      <div class="config-item" title="推送前自动提交">
+        <label>自动提交</label>
+        <input type="checkbox" id="commitBeforePush" ${cfg.commitBeforePush ? 'checked' : ''} onchange="saveConfig()" />
+      </div>
+      <div class="config-item" title="保存文件时同步">
+        <label>保存同步</label>
+        <input type="checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave ? 'checked' : ''} onchange="saveConfig()" />
+      </div>
+      <div class="config-item">
+        <button class="btn" onclick="openSettings()" title="详细设置">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-pill total"><span class="label">总计</span><span class="val">${result ? result.total : allRepos.length}</span></div>
+    <div class="stat-pill success"><span class="label">成功</span><span class="val">${result ? result.succeeded : 0}</span></div>
+    <div class="stat-pill error"><span class="label">失败</span><span class="val">${result ? result.failed : 0}</span></div>
+    <div class="progress-mini"><div class="progress-fill" style="width: ${successRate}%"></div></div>
+    <button class="btn success" onclick="refreshStatus()" title="刷新状态">🔄 刷新状态</button>
+    <button class="btn primary" onclick="syncAll()" title="同步所有">🚀 同步所有</button>
   </div>
 
-  <!-- Config Tab -->
-  <div class="tab-content ${defaultTab === "config" ? "active" : ""}" id="config-tab">
-    <h1>⚙️ Sync All Repos</h1>
-
-    <div class="run-actions">
-      <button class="btn-run" onclick="runSync()">🚀 执行同步 (Pull + Push)</button>
-      <button class="btn-run-secondary" onclick="runPull()">⬇️ 仅拉取</button>
-      <button class="btn-run-secondary" onclick="runPush()">⬆️ 仅推送</button>
+  <div class="toolbar">
+    <div class="bulk-actions">
+      <button class="btn" id="btn-sync-sel" disabled onclick="bulkAction('full')">🔄 同步选中</button>
+      <button class="btn" id="btn-pull-sel" disabled onclick="bulkAction('pull-only')">⬇️ 仅拉取</button>
+      <button class="btn" id="btn-push-sel" disabled onclick="bulkAction('push-only')">⬆️ 仅推送</button>
+      <span style="color:var(--muted); font-size:10px; margin-left:8px" id="selected-count">未选中</span>
     </div>
-
-    <div class="section">
-      <div class="section-title">📁 全局仓库路径</div>
-      <div class="field">
-        <label>仓库目录列表（已添加 ${allRepos.length} 个）</label>
-        <div class="path-list" id="pathList">${pathItems}</div>
-        <div style="display:flex;gap:6px;margin-top:4px;">
-          <button class="add-btn" onclick="addFolder()" style="flex:1">+ 选择仓库目录</button>
-          <button class="add-btn" onclick="rescan()" style="flex:1;border-color:var(--green);color:var(--green)">🔄 重新扫描</button>
-        </div>
-        <div class="hint">* 支持手动添加或删除，点击重新扫描按当前深度重新发现</div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label>自动扫描深度</label>
-          <input type="number" id="autoScanDepth" min="1" max="5" value="${cfg.autoScanDepth || 3}" onchange="onDepthChange()" />
-          <div class="hint">* 从选定目录向下扫描几层目录寻找 Git 仓库</div>
-        </div>
-        <div class="field">
-          <label>排除目录（逗号分隔）</label>
-          <input type="text" id="excludePatterns" value="${excludeVal}" />
-        </div>
-      </div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索仓库..." oninput="filterTable()" />
     </div>
-
-    <div class="section">
-      <div class="section-title">🔀 同步策略</div>
-      <div class="grid2">
-        <div class="field">
-          <label>Pull 策略</label>
-          <select id="pullStrategy">
-            <option value="merge"   ${(cfg.pullStrategy || "merge") === "merge" ? "selected" : ""}>merge（默认）</option>
-            <option value="rebase"  ${(cfg.pullStrategy || "merge") === "rebase" ? "selected" : ""}>rebase</option>
-            <option value="ff-only" ${(cfg.pullStrategy || "merge") === "ff-only" ? "selected" : ""}>ff-only（仅快进）</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Push 策略</label>
-          <select id="pushStrategy">
-            <option value="normal"           ${(cfg.pushStrategy || "normal") === "normal" ? "selected" : ""}>normal（正常推送）</option>
-            <option value="force-with-lease" ${(cfg.pushStrategy || "normal") === "force-with-lease" ? "selected" : ""}>force-with-lease</option>
-            <option value="skip"             ${(cfg.pushStrategy || "normal") === "skip" ? "selected" : ""}>skip（仅拉取）</option>
-          </select>
-        </div>
-      </div>
-      <div class="field" style="margin-top:8px">
-        <label>并发数量</label>
-        <input type="number" id="concurrency" min="1" max="10" value="${cfg.concurrency || 3}" />
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">📝 自动提交</div>
-      <div class="toggle-row">
-        <label>推送前自动提交未暂存变更</label>
-        <label class="toggle">
-          <input type="checkbox" id="commitBeforePush" ${cfg.commitBeforePush || false ? "checked" : ""} />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="field" style="margin-top:8px">
-        <label>自动 Commit 消息模板</label>
-        <input type="text" id="autoCommitMessage" value="${cfg.autoCommitMessage || "chore: auto sync ${date}"}" />
-        <div class="hint">* 支持 \${date} \${time} 变量</div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">🎨 界面</div>
-      <div class="toggle-row">
-        <label>在状态栏显示同步按钮</label>
-        <label class="toggle">
-          <input type="checkbox" id="showStatusBar" ${cfg.showStatusBar || true ? "checked" : ""} />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-row" style="margin-top:6px">
-        <label>保存文件时自动同步</label>
-        <label class="toggle">
-          <input type="checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave || false ? "checked" : ""} />
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn-settings" onclick="openSettings()">打开 JSON 设置</button>
-      <button class="btn-save" onclick="save()">💾 保存配置</button>
-      <button class="btn-run" onclick="runSync()" style="flex:1;min-width:140px">🚀 执行同步</button>
+    <div class="global-actions">
+      <button class="btn" onclick="addFolder()">+ 添加目录</button>
+      <button class="btn" onclick="rescan()">🔍 重新扫描</button>
     </div>
   </div>
 
-  <!-- Result Tab -->
-  <div class="tab-content ${defaultTab === "result" ? "active" : ""}" id="result-tab">
-    ${resultHtml || '<div class="no-data">还没有同步结果</div>'}
+  <div class="table-container">
+    <table id="repoTable">
+      <thead>
+        <tr>
+          <th class="checkbox-col"><input type="checkbox" id="check-all" onchange="toggleAll()"></th>
+          <th class="icon-col"></th>
+          <th class="name-col">仓库</th>
+          <th class="branch-col">分支</th>
+          <th class="remotes-col">远程仓库</th>
+          <th class="ahead-behind-col">进度</th>
+          <th class="message-col">状态/消息</th>
+          <th class="action-col">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        ${rows || '<tr><td colspan="8" class="no-data">未找到仓库，请点击“添加目录”或“重新扫描”</td></tr>'}
+      </tbody>
+    </table>
   </div>
 
 <script>
   const vscode = acquireVsCodeApi();
-  let paths = ${JSON.stringify(allRepos)};
-  let currentFilter = 'all';
+  let paths = ${JSON.stringify(cfg.repoPaths || [])};
 
-  function switchTab(tab, notify = true) {
-    // 隐藏所有内容
-    document.querySelectorAll('.tab-content').forEach(content => {
-      content.classList.remove('active');
-    });
-    document.querySelectorAll('.tab').forEach(t => {
-      t.classList.remove('active');
-    });
-    // 显示选中的标签和内容
-    document.getElementById(tab + '-tab').classList.add('active');
-    document.querySelector('.tab:nth-child(' + (tab === 'config' ? '1' : '2') + ')').classList.add('active');
-    // 通知后端
-    if (notify) {
-      vscode.postMessage({ command: 'switchTab', tab });
-    }
-  }
-
-  function renderPaths() {
-    const list = document.getElementById('pathList');
-    list.innerHTML = paths.map((p, i) => 
-      '<div class="path-item" id="path-' + i + '">' +
-        '<span class="path-text" title="' + p + '">' + p + '</span>' +
-        '<button class="remove-btn" onclick="removePath(' + i + ')">✕</button>' +
-      '</div>').join('');
-  }
-
-  function removePath(i) {
-    paths.splice(i, 1);
-    renderPaths();
-  }
-
-  function addFolder() {
-    vscode.postMessage({ command: 'addFolder' });
-  }
-
-  function openSettings() {
-    vscode.postMessage({ command: 'openSettings' });
-  }
-
-  function rescan() {
-    const depth = parseInt(document.getElementById('autoScanDepth').value, 10);
-    vscode.postMessage({ command: 'rescan', depth, paths });
-  }
-
-  function onDepthChange() {
-    // 深度改变时可以在这里添加逻辑
-  }
-
-  function save() {
+  function saveConfig() {
     const data = {
       repoPaths: paths,
       pullStrategy: document.getElementById('pullStrategy').value,
       pushStrategy: document.getElementById('pushStrategy').value,
       commitBeforePush: document.getElementById('commitBeforePush').checked,
-      autoCommitMessage: document.getElementById('autoCommitMessage').value,
-      autoScanDepth: parseInt(document.getElementById('autoScanDepth').value, 10),
-      concurrency: parseInt(document.getElementById('concurrency').value, 10),
-      excludePatterns: document.getElementById('excludePatterns').value.split(',').map(s => s.trim()).filter(s => s),
-      showStatusBar: document.getElementById('showStatusBar').checked,
       autoSyncOnSave: document.getElementById('autoSyncOnSave').checked,
+      concurrency: parseInt(document.getElementById('concurrency').value, 10),
+      autoScanDepth: ${cfg.autoScanDepth || 3},
+      autoCommitMessage: "${cfg.autoCommitMessage || 'chore: auto sync ${date}'}",
+      excludePatterns: ${JSON.stringify(cfg.excludePatterns || ["node_modules", ".git", "vendor", "dist"])},
+      showStatusBar: ${cfg.showStatusBar || true},
     };
     vscode.postMessage({ command: 'save', data });
   }
 
-  function runSync() {
-    save();
-    vscode.postMessage({ command: 'syncAll' });
+  function openRepo(p) { vscode.postMessage({ command: 'openRepo', path: p }); }
+  function syncRepo(p, mode) { vscode.postMessage({ command: 'sync', paths: [p], mode }); }
+  function syncAll() { vscode.postMessage({ command: 'syncAll' }); }
+  function addFolder() { vscode.postMessage({ command: 'addFolder' }); }
+  function openSettings() { vscode.postMessage({ command: 'openSettings' }); }
+  function rescan() { vscode.postMessage({ command: 'rescan', depth: ${cfg.autoScanDepth || 3}, paths }); }
+  function refreshStatus() { vscode.postMessage({ command: 'refresh' }); }
+
+  function toggleAll() {
+    const checkAll = document.getElementById('check-all');
+    document.querySelectorAll('.repo-checkbox').forEach(cb => {
+      const row = cb.closest('tr');
+      if (row.style.display !== 'none') {
+        cb.checked = checkAll.checked;
+      }
+    });
+    updateBulkUI();
   }
 
-  function runPull() {
-    save();
-    vscode.postMessage({ command: 'syncAll', mode: 'pull-only' });
+  function updateBulkUI() {
+    const selected = document.querySelectorAll('.repo-checkbox:checked');
+    const count = selected.length;
+    const btnSync = document.getElementById('btn-sync-sel');
+    const btnPull = document.getElementById('btn-pull-sel');
+    const btnPush = document.getElementById('btn-push-sel');
+    const countText = document.getElementById('selected-count');
+    
+    const hasSelected = count > 0;
+    btnSync.disabled = !hasSelected;
+    btnPull.disabled = !hasSelected;
+    btnPush.disabled = !hasSelected;
+    countText.textContent = hasSelected ? '已选中 ' + count + ' 个' : '未选中';
   }
 
-  function runPush() {
-    save();
-    vscode.postMessage({ command: 'syncAll', mode: 'push-only' });
+  function bulkAction(mode) {
+    const selectedPaths = [];
+    document.querySelectorAll('.repo-checkbox:checked').forEach(cb => {
+      const row = cb.closest('tr');
+      selectedPaths.push(row.dataset.path);
+    });
+    if (selectedPaths.length > 0) {
+      vscode.postMessage({ command: 'sync', paths: selectedPaths, mode });
+    }
+  }
+
+  function filterTable() {
+    const q = document.getElementById('search').value.toLowerCase();
+    document.querySelectorAll('#tableBody tr.repo-row').forEach(row => {
+      const name = row.querySelector('.name-col').textContent.toLowerCase();
+      row.style.display = name.includes(q) ? '' : 'none';
+    });
   }
 
   window.addEventListener('message', event => {
@@ -1063,41 +643,15 @@ function buildUnifiedHtml(
     switch (msg.command) {
       case 'addPaths':
         paths = [...new Set([...paths, ...msg.paths])];
-        renderPaths();
+        saveConfig();
+        rescan();
         break;
       case 'setPaths':
         paths = msg.paths;
-        renderPaths();
-        break;
-      case 'switchTab':
-        switchTab(msg.tab, false);
+        saveConfig();
         break;
     }
   });
-
-  // Result tab functions
-  function openRepo(p) {
-    vscode.postMessage({ command: 'openRepo', path: p });
-  }
-  function syncAgain() {
-    vscode.postMessage({ command: 'syncAll' });
-  }
-  function setFilter(f, btn) {
-    currentFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterTable();
-  }
-  function filterTable() {
-    const q = document.getElementById('search')?.value?.toLowerCase() ?? '';
-    document.querySelectorAll('#tableBody tr.repo-row').forEach(row => {
-      const name = row.querySelector('.name')?.textContent?.toLowerCase() ?? '';
-      const status = row.dataset.status ?? '';
-      const matchFilter = currentFilter === 'all' || status === currentFilter;
-      const matchSearch = name.includes(q);
-      row.style.display = matchFilter && matchSearch ? '' : 'none';
-    });
-  }
 </script>
 </body>
 </html>`;
