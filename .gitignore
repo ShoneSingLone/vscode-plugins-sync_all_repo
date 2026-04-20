@@ -1,0 +1,10 @@
+node_modules
+out
+*.vsix
+test/debug-scan.js
+test/diagnose.js
+test/functional-test.js
+test/project-test.js
+test/TEST_REPORT.md
+docs
+.workbuddy

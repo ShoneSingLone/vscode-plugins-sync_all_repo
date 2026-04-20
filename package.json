@@ -1,0 +1,197 @@
+{
+  "name": "sync-all-repos",
+  "displayName": "Sync All Repos",
+  "description": "一键同步所有远程 Git 仓库（pull + push），保持多仓库代码一致",
+  "version": "1.0.0",
+  "publisher": "ShoneSingLone",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "sync",
+    "pull",
+    "push",
+    "multi-repo"
+  ],
+  "icon": "images/icon.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "shone.sing.lone.syncrepos.syncAll",
+        "title": "Sync All Repos: 同步所有仓库",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "shone.sing.lone.syncrepos.pullAll",
+        "title": "Sync All Repos: 拉取所有仓库 (Pull Only)",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "shone.sing.lone.syncrepos.pushAll",
+        "title": "Sync All Repos: 推送所有仓库 (Push Only)",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "shone.sing.lone.syncrepos.showStatus",
+        "title": "Sync All Repos: 查看仓库状态",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "shone.sing.lone.syncrepos.openSettings",
+        "title": "Sync All Repos: 打开配置",
+        "icon": "$(gear)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "shone.sing.lone.syncrepos.syncAll"
+        },
+        {
+          "command": "shone.sing.lone.syncrepos.pullAll"
+        },
+        {
+          "command": "shone.sing.lone.syncrepos.pushAll"
+        },
+        {
+          "command": "shone.sing.lone.syncrepos.showStatus"
+        },
+        {
+          "command": "shone.sing.lone.syncrepos.openSettings"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Sync All Repos",
+      "properties": {
+        "shone.sing.lone.syncrepos.repoPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "要同步的 Git 仓库绝对路径列表（为空时自动扫描 workspaceFolders）"
+        },
+        "shone.sing.lone.syncrepos.projectRepos": {
+          "type": "object",
+          "default": {},
+          "description": "按项目指定仓库地址。键为项目根目录路径，值为该项目下的仓库子路径数组（支持相对路径）。示例：{\"/home/user/project\": [\"frontend\", \"backend\", \"shared/lib\"]}"
+        },
+        "shone.sing.lone.syncrepos.autoScanDepth": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "自动扫描子目录的深度（当 repoPaths 为空时生效）"
+        },
+        "shone.sing.lone.syncrepos.pullStrategy": {
+          "type": "string",
+          "enum": [
+            "merge",
+            "rebase",
+            "ff-only"
+          ],
+          "default": "merge",
+          "description": "git pull 策略：merge（默认）/ rebase / ff-only"
+        },
+        "shone.sing.lone.syncrepos.pushStrategy": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "force-with-lease",
+            "skip"
+          ],
+          "default": "normal",
+          "description": "git push 策略：normal / force-with-lease / skip（仅拉取）"
+        },
+        "shone.sing.lone.syncrepos.autoSyncOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "保存文件时自动触发同步"
+        },
+        "shone.sing.lone.syncrepos.commitBeforePush": {
+          "type": "boolean",
+          "default": false,
+          "description": "推送前自动提交所有未提交的变更"
+        },
+        "shone.sing.lone.syncrepos.autoCommitMessage": {
+          "type": "string",
+          "default": "chore: auto sync ${date}",
+          "description": "自动提交时的 commit 信息模板，支持 ${date} ${time} 变量"
+        },
+        "shone.sing.lone.syncrepos.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            ".git",
+            "vendor",
+            "dist"
+          ],
+          "description": "扫描时跳过的目录名称"
+        },
+        "shone.sing.lone.syncrepos.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否在状态栏显示快捷按钮"
+        },
+        "shone.sing.lone.syncrepos.concurrency": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "并发同步的仓库数量"
+        },
+        "shone.sing.lone.syncrepos.logLevel": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
+          "default": "info",
+          "description": "日志级别：error / warn / info / debug（输出到 Output 面板的 Sync All Repos 通道）"
+        },
+        "shone.sing.lone.syncrepos.logToConsole": {
+          "type": "boolean",
+          "default": false,
+          "description": "同时输出日志到开发者控制台（Debug Console）"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "shone.sing.lone.syncrepos.syncAll",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "editorFocus || !editorFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "publish:patch": "vsce publish patch",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0",
+    "@vscode/vsce": "^2.19.0"
+  },
+  "dependencies": {}
+}
