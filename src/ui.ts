@@ -80,6 +80,7 @@ export class SyncMainPanel {
   private panel: vscode.WebviewPanel;
   private context: vscode.ExtensionContext;
   private lastResult: SyncResult | null = null;
+  private currentTab: "config" | "result";
 
   static show(
     context: vscode.ExtensionContext,
@@ -105,6 +106,7 @@ export class SyncMainPanel {
     defaultTab: "config" | "result" = "config",
   ) {
     this.context = context;
+    this.currentTab = defaultTab;
     if (result) {
       this.lastResult = result;
     }
@@ -121,7 +123,7 @@ export class SyncMainPanel {
     this.panel.webview.onDidReceiveMessage((msg) => {
       this.handleMessage(msg);
     });
-    this.update(defaultTab);
+    this.update(this.currentTab);
   }
 
   private handleMessage(msg: any) {
@@ -162,7 +164,7 @@ export class SyncMainPanel {
         this.rescan(msg.depth, msg.paths);
         break;
       case "switchTab":
-        this.switchTab(msg.tab);
+        this.currentTab = msg.tab;
         break;
     }
   }
@@ -225,35 +227,45 @@ export class SyncMainPanel {
   private rescan(depth: number, paths: string[]) {
     const cfg = this.loadConfig();
     const newRepos: string[] = [];
-    logger.info("Rescan started", { depth, rootCount: paths.length });
+    const safeDepth =
+      Number.isFinite(depth) && depth >= 0 ? depth : cfg.autoScanDepth ?? 3;
+    logger.info("Rescan started", { depth: safeDepth, rootCount: paths.length });
 
     for (const root of paths) {
-      if (fs.existsSync(path.join(root, ".git"))) {
+      const gitMarker = path.join(root, ".git");
+      if (fs.existsSync(gitMarker)) {
         newRepos.push(root);
-      } else {
+      }
+      if (safeDepth > 0) {
         const found = require("./config").scanGitRepos(
           root,
-          depth,
+          safeDepth,
           cfg.excludePatterns || ["node_modules", ".git", "vendor", "dist"],
         );
         newRepos.push(...found);
       }
     }
-    logger.info("Rescan finished", { foundCount: newRepos.length });
+    const uniqueRepos = [...new Set(newRepos)];
+    logger.info("Rescan finished", {
+      foundCount: newRepos.length,
+      uniqueCount: uniqueRepos.length,
+    });
 
     this.panel.webview.postMessage({
       command: "setPaths",
-      paths: [...new Set(newRepos)],
+      paths: uniqueRepos,
     });
   }
 
   private switchTab(tab: "config" | "result") {
+    this.currentTab = tab;
     this.panel.webview.postMessage({ command: "switchTab", tab });
   }
 
   private updateResult(result: SyncResult) {
     this.lastResult = result;
-    this.update("result");
+    this.currentTab = "result";
+    this.update(this.currentTab);
   }
 
   private update(defaultTab: "config" | "result") {
@@ -716,7 +728,7 @@ function buildUnifiedHtml(
     --green: #a6e3a1; --blue: #89b4fa; --mauve: #cba6f7; --red: #f38ba8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; padding: 16px; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; padding: 16px; min-height: 100vh; overflow-y: scroll; }
   
   /* Tabs */
   .tabs {
@@ -967,7 +979,7 @@ function buildUnifiedHtml(
   let paths = ${JSON.stringify(allRepos)};
   let currentFilter = 'all';
 
-  function switchTab(tab) {
+  function switchTab(tab, notify = true) {
     // 隐藏所有内容
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.remove('active');
@@ -979,7 +991,9 @@ function buildUnifiedHtml(
     document.getElementById(tab + '-tab').classList.add('active');
     document.querySelector('.tab:nth-child(' + (tab === 'config' ? '1' : '2') + ')').classList.add('active');
     // 通知后端
-    vscode.postMessage({ command: 'switchTab', tab });
+    if (notify) {
+      vscode.postMessage({ command: 'switchTab', tab });
+    }
   }
 
   function renderPaths() {
@@ -1056,7 +1070,7 @@ function buildUnifiedHtml(
         renderPaths();
         break;
       case 'switchTab':
-        switchTab(msg.tab);
+        switchTab(msg.tab, false);
         break;
     }
   });

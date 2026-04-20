@@ -47,6 +47,16 @@ export function scanGitRepos(
   const repos: string[] = [];
   logger.debug("scanGitRepos started", { rootPath, depth, exclude });
 
+  function isGitRepoMarker(gitPath: string): boolean {
+    if (!fs.existsSync(gitPath)) return false;
+    try {
+      const st = fs.statSync(gitPath);
+      return st.isDirectory() || st.isFile();
+    } catch {
+      return false;
+    }
+  }
+
   function scan(dir: string, currentDepth: number) {
     if (currentDepth >= depth) return;
 
@@ -60,7 +70,7 @@ export function scanGitRepos(
         const fullPath = path.join(dir, entry.name);
         const gitPath = path.join(fullPath, ".git");
 
-        if (fs.existsSync(gitPath) && fs.statSync(gitPath).isDirectory()) {
+        if (isGitRepoMarker(gitPath)) {
           repos.push(fullPath);
           scan(fullPath, currentDepth + 1);
         } else {
@@ -84,6 +94,15 @@ export function scanReposFromPaths(
   exclude: string[] = ["node_modules", ".git", "vendor", "dist"],
 ): string[] {
   const allRepos: string[] = [];
+  const isGitRepoMarker = (gitPath: string): boolean => {
+    if (!fs.existsSync(gitPath)) return false;
+    try {
+      const st = fs.statSync(gitPath);
+      return st.isDirectory() || st.isFile();
+    } catch {
+      return false;
+    }
+  };
 
   for (const rootPath of rootPaths) {
     if (!fs.existsSync(rootPath) || !fs.statSync(rootPath).isDirectory()) {
@@ -91,9 +110,10 @@ export function scanReposFromPaths(
     }
 
     const gitPath = path.join(rootPath, ".git");
-    if (fs.existsSync(gitPath) && fs.statSync(gitPath).isDirectory()) {
+    if (isGitRepoMarker(gitPath)) {
       allRepos.push(rootPath);
-    } else {
+    }
+    if (depth > 0) {
       const scanned = scanGitRepos(rootPath, depth, exclude);
       allRepos.push(...scanned);
     }
