@@ -181,7 +181,7 @@ function showResultPanel(result: Parameters<typeof SyncMainPanel.show>[1]) {
 
 async function showStatus() {
   const cfg = loadConfig();
-  const repoPaths = cfg.repoPaths || [];
+  const repoPaths: string[] = (cfg.repoPaths || []) as string[];
 
   if (repoPaths.length === 0) {
     vscode.window.showWarningMessage("⚠️ 没有配置仓库目录。");
@@ -194,12 +194,12 @@ async function showStatus() {
 
     const startTime = Date.now();
     const repos: RepoInfo[] = [];
-    const concurrency = cfg.concurrency || 3;
+    const concurrency: number = Number(cfg.concurrency) || 3;
     
     // Batch processing to be faster
     for (let i = 0; i < repoPaths.length; i += concurrency) {
-      const batch = repoPaths.slice(i, i + concurrency);
-      const results = await Promise.all(batch.map(p => getRepoInfo(p)));
+      const batch: string[] = repoPaths.slice(i, i + concurrency);
+      const results = await Promise.all(batch.map((p: string) => getRepoInfo(p)));
       repos.push(...results);
       progress.report({ 
         increment: (batch.length / repoPaths.length) * 100,
