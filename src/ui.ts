@@ -151,7 +151,7 @@ export class SyncMainPanel {
         );
         break;
       case "rescan":
-        this.rescan(msg.depth, msg.paths);
+        this.rescan(msg.depth);
         break;
       case "refresh":
         vscode.commands.executeCommand("shone.sing.lone.syncrepos.showStatus");
@@ -206,14 +206,35 @@ export class SyncMainPanel {
     }
   }
 
-  private rescan(depth: number, paths: string[]) {
+  private rescan(depth: number) {
     const cfg = this.loadConfig();
     const newRepos: string[] = [];
     const safeDepth =
-      Number.isFinite(depth) && depth >= 0 ? depth : cfg.autoScanDepth ?? 3;
-    logger.info("Rescan started", { depth: safeDepth, rootCount: paths.length });
+      Number.isFinite(depth) && depth >= 0 ? depth : (cfg.autoScanDepth ?? 3);
 
-    for (const root of paths) {
+    // Get current active project folder
+    let currentProjectPaths: string[] = [];
+
+    // If no active editor, use first workspace folder
+    const workspaceFolders = vscode.workspace.workspaceFolders || [];
+    if (workspaceFolders.length > 0) {
+      currentProjectPaths = [workspaceFolders[0].uri.fsPath];
+      logger.info(
+        "Rescan started for first workspace folder (no active editor)",
+        {
+          depth: safeDepth,
+          projectPath: workspaceFolders[0].uri.fsPath,
+        },
+      );
+    } else {
+      logger.warn("No workspace folders found for rescan");
+      vscode.window.showWarningMessage(
+        "⚠️ 没有打开的工作区文件夹，请先打开一个包含 Git 仓库的项目",
+      );
+      return;
+    }
+
+    for (const root of currentProjectPaths) {
       const gitMarker = path.join(root, ".git");
       if (fs.existsSync(gitMarker)) {
         newRepos.push(root);
@@ -231,6 +252,7 @@ export class SyncMainPanel {
     logger.info("Rescan finished", {
       foundCount: newRepos.length,
       uniqueCount: uniqueRepos.length,
+      projectPaths: currentProjectPaths,
     });
 
     this.panel.webview.postMessage({
@@ -290,22 +312,33 @@ export function showProgressNotification(
 
 function statusIcon(status: string): string {
   switch (status) {
-    case "success": return "✅";
-    case "error": return "❌";
-    case "skipped": return "⏭️";
-    case "pulling": return "⬇️";
-    case "pushing": return "⬆️";
-    case "committing": return "📝";
-    default: return "⏳";
+    case "success":
+      return "✅";
+    case "error":
+      return "❌";
+    case "skipped":
+      return "⏭️";
+    case "pulling":
+      return "⬇️";
+    case "pushing":
+      return "⬆️";
+    case "committing":
+      return "📝";
+    default:
+      return "⏳";
   }
 }
 
 function statusColor(status: string): string {
   switch (status) {
-    case "success": return "#a6e3a1";
-    case "error": return "#f38ba8";
-    case "skipped": return "#6c7086";
-    default: return "#89b4fa";
+    case "success":
+      return "#a6e3a1";
+    case "error":
+      return "#f38ba8";
+    case "skipped":
+      return "#6c7086";
+    default:
+      return "#89b4fa";
   }
 }
 
@@ -331,18 +364,20 @@ function buildUnifiedHtml(
     cfg = require("./config").getDefaultConfig();
   }
 
-  const allRepos = result ? result.repos : (cfg.repoPaths || []).map((p: string) => ({
-    path: p,
-    name: path.basename(p),
-    branch: "-",
-    hasRemote: false,
-    status: "idle",
-    message: "",
-    ahead: 0,
-    behind: 0,
-    hasUncommitted: false,
-    remotes: [],
-  }));
+  const allRepos = result
+    ? result.repos
+    : (cfg.repoPaths || []).map((p: string) => ({
+        path: p,
+        name: path.basename(p),
+        branch: "-",
+        hasRemote: false,
+        status: "idle",
+        message: "",
+        ahead: 0,
+        behind: 0,
+        hasUncommitted: false,
+        remotes: [],
+      }));
 
   const rows = allRepos
     .map(
@@ -371,7 +406,10 @@ function buildUnifiedHtml(
     )
     .join("");
 
-  const successRate = result && result.total > 0 ? Math.round((result.succeeded / result.total) * 100) : 0;
+  const successRate =
+    result && result.total > 0
+      ? Math.round((result.succeeded / result.total) * 100)
+      : 0;
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -482,24 +520,24 @@ function buildUnifiedHtml(
   <header>
     <div class="title-area">
       <h1>🔄 Sync All Repos</h1>
-      <div class="subtitle">${result ? `上次完成: ${new Date().toLocaleTimeString()} (耗时 ${(result.duration / 1000).toFixed(1)}s)` : '就绪'}</div>
+      <div class="subtitle">${result ? `上次完成: ${new Date().toLocaleTimeString()} (耗时 ${(result.duration / 1000).toFixed(1)}s)` : "就绪"}</div>
     </div>
     
     <div class="config-bar">
       <div class="config-item">
         <label>PULL</label>
         <select id="pullStrategy" onchange="saveConfig()">
-          <option value="merge" ${cfg.pullStrategy === 'merge' ? 'selected' : ''}>Merge</option>
-          <option value="rebase" ${cfg.pullStrategy === 'rebase' ? 'selected' : ''}>Rebase</option>
-          <option value="ff-only" ${cfg.pullStrategy === 'ff-only' ? 'selected' : ''}>FF-Only</option>
+          <option value="merge" ${cfg.pullStrategy === "merge" ? "selected" : ""}>Merge</option>
+          <option value="rebase" ${cfg.pullStrategy === "rebase" ? "selected" : ""}>Rebase</option>
+          <option value="ff-only" ${cfg.pullStrategy === "ff-only" ? "selected" : ""}>FF-Only</option>
         </select>
       </div>
       <div class="config-item">
         <label>PUSH</label>
         <select id="pushStrategy" onchange="saveConfig()">
-          <option value="normal" ${cfg.pushStrategy === 'normal' ? 'selected' : ''}>Normal</option>
-          <option value="force-with-lease" ${cfg.pushStrategy === 'force-with-lease' ? 'selected' : ''}>Force</option>
-          <option value="skip" ${cfg.pushStrategy === 'skip' ? 'selected' : ''}>Skip</option>
+          <option value="normal" ${cfg.pushStrategy === "normal" ? "selected" : ""}>Normal</option>
+          <option value="force-with-lease" ${cfg.pushStrategy === "force-with-lease" ? "selected" : ""}>Force</option>
+          <option value="skip" ${cfg.pushStrategy === "skip" ? "selected" : ""}>Skip</option>
         </select>
       </div>
       <div class="config-item">
@@ -508,11 +546,11 @@ function buildUnifiedHtml(
       </div>
       <div class="config-item" title="推送前自动提交">
         <label>自动提交</label>
-        <input type="checkbox" id="commitBeforePush" ${cfg.commitBeforePush ? 'checked' : ''} onchange="saveConfig()" />
+        <input type="checkbox" id="commitBeforePush" ${cfg.commitBeforePush ? "checked" : ""} onchange="saveConfig()" />
       </div>
       <div class="config-item" title="保存文件时同步">
         <label>保存同步</label>
-        <input type="checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave ? 'checked' : ''} onchange="saveConfig()" />
+        <input type="checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave ? "checked" : ""} onchange="saveConfig()" />
       </div>
       <div class="config-item">
         <button class="btn" onclick="openSettings()" title="详细设置">⚙️</button>
@@ -578,7 +616,7 @@ function buildUnifiedHtml(
       autoSyncOnSave: document.getElementById('autoSyncOnSave').checked,
       concurrency: parseInt(document.getElementById('concurrency').value, 10),
       autoScanDepth: ${cfg.autoScanDepth || 3},
-      autoCommitMessage: "${cfg.autoCommitMessage || 'chore: auto sync ${date}'}",
+      autoCommitMessage: "${cfg.autoCommitMessage || "chore: auto sync ${date}"}",
       excludePatterns: ${JSON.stringify(cfg.excludePatterns || ["node_modules", ".git", "vendor", "dist"])},
       showStatusBar: ${cfg.showStatusBar || true},
     };
@@ -590,7 +628,7 @@ function buildUnifiedHtml(
   function syncAll() { vscode.postMessage({ command: 'syncAll' }); }
   function addFolder() { vscode.postMessage({ command: 'addFolder' }); }
   function openSettings() { vscode.postMessage({ command: 'openSettings' }); }
-  function rescan() { vscode.postMessage({ command: 'rescan', depth: ${cfg.autoScanDepth || 3}, paths }); }
+  function rescan() { vscode.postMessage({ command: 'rescan', depth: ${cfg.autoScanDepth || 3} }); }
   function refreshStatus() { vscode.postMessage({ command: 'refresh' }); }
 
   function toggleAll() {

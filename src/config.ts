@@ -65,19 +65,22 @@ export function scanGitRepos(
 
       for (const entry of entries) {
         if (!entry.isDirectory()) continue;
-        if (exclude.includes(entry.name)) continue;
 
         const fullPath = path.join(dir, entry.name);
         const gitPath = path.join(fullPath, ".git");
 
         if (isGitRepoMarker(gitPath)) {
+          // Always add Git repos regardless of exclude list
           repos.push(fullPath);
+          // Continue scanning inside the repo if depth allows
           scan(fullPath, currentDepth + 1);
-        } else {
+        } else if (!exclude.includes(entry.name)) {
+          // Only scan non-Git directories that are not excluded
           scan(fullPath, currentDepth + 1);
         }
       }
-    } catch {
+    } catch (error) {
+      logger.debug("Scan error", { dir, error: (error as Error).message });
       // ignore permission errors
     }
   }
