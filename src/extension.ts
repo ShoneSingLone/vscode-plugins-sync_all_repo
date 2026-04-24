@@ -8,12 +8,18 @@ import {
   RepoInfo,
   SyncMode,
 } from "./gitManager";
-import { SyncStatusBar, SyncMainPanel, showProgressNotification, SyncResultPanel } from "./ui";
+import {
+  SyncStatusBar,
+  SyncMainPanel,
+  showProgressNotification,
+  SyncResultPanel,
+} from "./ui";
 import { getDefaultConfig, scanReposFromPaths } from "./config";
 import { logger } from "./logger";
 
 let statusBar: SyncStatusBar;
 let isSyncing = false;
+let isScanning = false;
 let extensionContext: vscode.ExtensionContext | undefined;
 
 // ──────────────────────────────────────────────
@@ -51,6 +57,11 @@ async function runSync(mode: SyncMode, targetPaths?: string[]) {
   if (isSyncing) {
     vscode.window.showWarningMessage("⚠️ 同步正在进行中，请稍候...");
     logger.warn("Sync rejected: already syncing", { mode });
+    return;
+  }
+  if (isScanning) {
+    vscode.window.showWarningMessage("⚠️ 状态扫描正在进行中，请稍候...");
+    logger.warn("Sync rejected: already scanning", { mode });
     return;
   }
   isSyncing = true;
@@ -122,7 +133,8 @@ async function runSync(mode: SyncMode, targetPaths?: string[]) {
           pullStrategy: cfg.pullStrategy || "merge",
           pushStrategy: cfg.pushStrategy || "normal",
           commitBeforePush: cfg.commitBeforePush || false,
-          autoCommitMessage: cfg.autoCommitMessage || "chore: auto sync ${date}",
+          autoCommitMessage:
+            cfg.autoCommitMessage || "chore: auto sync ${date}",
           concurrency: cfg.concurrency || 3,
         },
         (info: RepoInfo) => {
@@ -180,12 +192,25 @@ function showResultPanel(result: Parameters<typeof SyncMainPanel.show>[1]) {
 // ──────────────────────────────────────────────
 
 async function showStatus() {
+  if (isScanning) {
+    vscode.window.showWarningMessage("⚠️ 状态扫描正在进行中，请稍候...");
+    logger.warn("ShowStatus rejected: already scanning");
+    return;
+  }
+  if (isSyncing) {
+    vscode.window.showWarningMessage("⚠️ 同步操作正在进行中，请稍候...");
+    logger.warn("ShowStatus rejected: already syncing");
+    return;
+  }
+  isScanning = true;
+
   const cfg = loadConfig();
   const repoPaths: string[] = (cfg.repoPaths || []) as string[];
 
   if (repoPaths.length === 0) {
     vscode.window.showWarningMessage("⚠️ 没有配置仓库目录。");
     logger.warn("ShowStatus aborted: no repoPaths");
+    isScanning = false;
     return;
   }
 
@@ -194,16 +219,17 @@ async function showStatus() {
 
     const startTime = Date.now();
     const repos: RepoInfo[] = [];
-    const concurrency: number = Number(cfg.concurrency) || 3;
-    
-    // Batch processing to be faster
-    for (let i = 0; i < repoPaths.length; i += concurrency) {
-      const batch: string[] = repoPaths.slice(i, i + concurrency);
-      const results = await Promise.all(batch.map((p: string) => getRepoInfo(p)));
-      repos.push(...results);
-      progress.report({ 
-        increment: (batch.length / repoPaths.length) * 100,
-        message: `检查中... [${Math.min(i + concurrency, repoPaths.length)}/${repoPaths.length}]`
+    const increment = 100 / repoPaths.length;
+    let completed = 0;
+
+    // Process each repo individually to show progress
+    for (const repoPath of repoPaths) {
+      const repoInfo = await getRepoInfo(repoPath);
+      repos.push(repoInfo);
+      completed++;
+      progress.report({
+        increment,
+        message: `[${completed}/${repoPaths.length}] ${repoInfo.name} — ${repoInfo.message || repoInfo.status}`,
       });
     }
 
@@ -219,6 +245,8 @@ async function showStatus() {
 
     SyncMainPanel.show(extensionContext!, result);
   });
+
+  isScanning = false;
 }
 
 // ──────────────────────────────────────────────
@@ -266,9 +294,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("shone.sing.lone.syncrepos.pullAll", () =>
       runSync("pull-only"),
     ),
-    vscode.commands.registerCommand(
-      "shone.sing.lone.syncrepos.pushAll",
-      () => runSync("push-only"),
+    vscode.commands.registerCommand("shone.sing.lone.syncrepos.pushAll", () =>
+      runSync("push-only"),
     ),
     vscode.commands.registerCommand(
       "shone.sing.lone.syncrepos.syncSelected",
