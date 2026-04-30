@@ -185,6 +185,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "publish:patch": "vsce publish patch",
+    "publish": "vsce publish",
     "package": "vsce package"
   },
   "devDependencies": {
