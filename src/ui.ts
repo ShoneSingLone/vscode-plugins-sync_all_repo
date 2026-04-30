@@ -381,35 +381,36 @@ function buildUnifiedHtml(
 
   const rows = allRepos
     .map(
-      (r: any) => `
-    <tr class="repo-row" data-status="${r.status}" data-path="${r.path.replace(/\\/g, "\\\\")}">
-      <td class="checkbox-col"><input type="checkbox" class="repo-checkbox" onchange="updateBulkUI()"></td>
-      <td class="icon-col">${statusIcon(r.status)}</td>
-      <td class="name-col" title="${r.path}">${r.name}</td>
-      <td class="branch-col">${r.branch}</td>
-      <td class="remotes-col" title="${r.remotes.join(", ")}">${r.remotes.length > 0 ? r.remotes.join(", ") : "-"}</td>
-      <td class="ahead-behind-col">
-        ${r.ahead > 0 ? `<span class="badge up">↑${r.ahead}</span>` : ""}
-        ${r.behind > 0 ? `<span class="badge down">↓${r.behind}</span>` : ""}
-        ${!r.ahead && !r.behind ? "-" : ""}
-      </td>
-      <td class="message-col" style="color:${statusColor(r.status)}">${r.message || "-"}</td>
-      <td class="action-col">
-        <div class="row-actions">
-          <button title="同步" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'full')">🔄</button>
-          <button title="拉取" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'pull-only')">⬇️</button>
-          <button title="推送" onclick="syncRepo('${r.path.replace(/\\/g, "\\\\")}', 'push-only')">⬆️</button>
-          <button title="打开" onclick="openRepo('${r.path.replace(/\\/g, "\\\\")}')">📂</button>
-        </div>
-      </td>
-    </tr>`,
+      (r: any, index: number) => `
+    <div class="repo-row" data-status="${r.status}" data-path="${r.path.replace(/\\/g, "\\\\")}" style="background: ${index % 2 === 0 ? 'transparent' : '#2a2a2a'}">
+      <div class="row-checkbox"><input type="checkbox" class="repo-checkbox" onchange="updateBulkUI()"></div>
+      <div class="row-icon">${statusIcon(r.status)}</div>
+      <div class="row-name" title="${r.path}">${r.name}</div>
+      <div class="row-branch">${r.branch}</div>
+      <div class="row-remote">${r.remotes.length > 0 ? r.remotes[0] : "-"}</div>
+      <div class="row-status">${r.message || "-"}</div>
+    </div>`,
     )
     .join("");
 
-  const successRate =
-    result && result.total > 0
-      ? Math.round((result.succeeded / result.total) * 100)
-      : 0;
+  const stats = result
+    ? {
+        total: result.total,
+        success: result.succeeded,
+        failed: result.failed,
+        skipped: result.skipped,
+      }
+    : { total: allRepos.length, success: 0, failed: 0, skipped: 0 };
+
+  const logs = result
+    ? result.repos
+        .map((r: any) => {
+          const statusColor = r.status === "success" ? "#4ec9b0" : r.status === "error" ? "#f44747" : r.status === "skipped" ? "#858585" : "#ffcc00";
+          const statusPrefix = r.status === "success" ? "[SUCCESS]" : r.status === "error" ? "[ERROR]" : r.status === "skipped" ? "[SKIP]" : "[INFO]";
+          return `<div class="log-item" style="color:${statusColor}">${statusPrefix} ${r.name} ${r.message || ""}</div>`;
+        })
+        .join("")
+    : '<div class="log-item" style="color:#858585">[INFO] 就绪</div>';
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -418,189 +419,338 @@ function buildUnifiedHtml(
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>Sync All Repos</title>
 <style>
-  :root {
-    --bg: #1e1e2e; --surface: #2a2a3e; --border: #3e3e5e;
-    --text: #cdd6f4; --muted: #6c7086;
-    --green: #a6e3a1; --blue: #89b4fa; --mauve: #cba6f7; --red: #f38ba8; --yellow: #f9e2af;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12px; padding: 12px; min-height: 100vh; overflow-y: scroll; }
-  
-  /* Compact Header & Config */
-  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 16px; flex-wrap: wrap; }
-  .title-area h1 { font-size: 16px; font-weight: 700; color: var(--mauve); display: flex; align-items: center; gap: 6px; margin: 0; }
-  .title-area .subtitle { font-size: 10px; color: var(--muted); }
+  body { 
+    background: #1e1e1e; 
+    color: #cccccc; 
+    font-family: Inter, 'Segoe UI', system-ui, sans-serif; 
+    font-size: 12px; 
+    min-height: 600px; 
+    display: flex;
+    flex-direction: column;
+  }
 
-  .config-bar { 
-    display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; flex: 1; min-width: 300px;
+  /* Top Section */
+  .top-section {
+    background: #252526;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #3c3c3c;
   }
-  .config-item { display: flex; align-items: center; gap: 4px; border-right: 1px solid var(--border); padding-right: 8px; height: 24px; }
-  .config-item:last-child { border-right: none; padding-right: 0; }
-  .config-item label { font-size: 10px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-  .config-item select, .config-item input { 
-    background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 2px 4px; font-size: 11px; outline: none;
-  }
-  .config-item input[type=number] { width: 36px; }
-  .config-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; }
-
-  /* Stats Bar */
-  .stats-bar { 
-    display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;
-  }
-  .stat-pill { 
-    background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; display: flex; gap: 6px; align-items: center;
-  }
-  .stat-pill .val { font-weight: 700; }
-  .stat-pill.success .val { color: var(--green); }
-  .stat-pill.error .val { color: var(--red); }
-  .stat-pill.total .val { color: var(--blue); }
-
-  .progress-mini { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 100px; }
-  .progress-fill { height: 100%; background: var(--mauve); transition: width .3s; }
 
   /* Toolbar */
-  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
-  .bulk-actions { display: flex; gap: 6px; align-items: center; }
-  .btn { 
-    background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; transition: all .1s; display: flex; align-items: center; gap: 4px;
+  .toolbar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    border-bottom: 1px solid #3c3c3c;
+    gap: 8px;
   }
-  .btn:hover:not(:disabled) { background: var(--border); border-color: var(--muted); }
-  .btn:active:not(:disabled) { transform: translateY(1px); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn.primary { background: var(--mauve); color: #1e1e2e; border: none; font-weight: 600; }
-  .btn.primary:hover { opacity: 0.9; }
-  .btn.success { border-color: var(--green); color: var(--green); }
-  .btn.success:hover { background: rgba(166,227,161,0.1); }
-
-  .search-box { position: relative; flex: 1; max-width: 240px; }
-  .search-box input { 
-    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 4px 8px 4px 24px; font-size: 11px; outline: none;
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .search-box::before { content: '🔍'; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0.5; }
-
-  /* Table */
-  .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  th { 
-    background: #12121e; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border);
+  .toolbar-title {
+    color: #cccccc;
+    font-size: 13px;
+    font-weight: 600;
   }
-  td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  tr.repo-row:hover { background: rgba(255,255,255,0.02); }
-
-  .checkbox-col { width: 32px; text-align: center; }
-  .icon-col { width: 28px; text-align: center; }
-  .name-col { width: 15%; font-weight: 600; }
-  .branch-col { width: 10%; color: var(--yellow); font-family: monospace; }
-  .remotes-col { width: 20%; color: var(--muted); font-size: 10px; }
-  .ahead-behind-col { width: 80px; }
-  .message-col { width: auto; font-size: 11px; }
-  .action-col { width: 140px; text-align: right; }
-
-  .badge { display: inline-block; padding: 0 4px; border-radius: 3px; font-size: 9px; font-weight: 700; }
-  .badge.up { background: rgba(166,227,161,0.1); color: var(--green); }
-  .badge.down { background: rgba(243,139,168,0.1); color: var(--red); }
-
-  .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
-  .row-actions button { 
-    background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 4px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .row-actions button:hover { background: var(--border); }
 
-  .no-data { text-align: center; padding: 40px; color: var(--muted); }
+  /* Buttons */
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+  }
+  .btn-primary {
+    background: #0e639c;
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: #1177bb;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: #007acc;
+    border: 1px solid #007acc;
+  }
+  .btn-secondary:hover {
+    background: rgba(0,122,204,0.1);
+  }
+  .btn-tertiary {
+    background: transparent;
+    color: #cccccc;
+    border: 1px solid #3c3c3c;
+  }
+  .btn-tertiary:hover {
+    background: #3c3c3c;
+  }
+
+  /* Config Bar */
+  .config-bar {
+    height: 44px;
+    background: #2d2d2d;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    border-bottom: 1px solid #3c3c3c;
+  }
+  .config-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .config-label {
+    color: #858585;
+    font-size: 11px;
+  }
+  .config-select, .config-input {
+    background: #3c3c3c;
+    border: none;
+    border-radius: 3px;
+    color: #cccccc;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .config-select {
+    width: 90px;
+    height: 26px;
+  }
+  .config-input {
+    width: 50px;
+    height: 26px;
+  }
+  .config-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  /* Bottom Section */
+  .bottom-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    height: 40px;
+    background: #2d2d2d;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .status-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ec9b0;
+  }
+  .status-text {
+    color: #4ec9b0;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: #474747;
+  }
+  .stats-info {
+    color: #858585;
+    font-size: 12px;
+  }
+  .stats-spacer {
+    flex: 1;
+  }
+  .last-sync {
+    color: #636363;
+    font-size: 11px;
+  }
+
+  /* Separator */
+  .separator {
+    height: 1px;
+    background: #3c3c3c;
+  }
+
+  /* Repository Table */
+  .repo-table {
+    flex: 1;
+    padding: 4px 0;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .repo-row {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 12px;
+    transition: background-color 0.1s;
+  }
+  .repo-row:hover {
+    background: #2d2d2d;
+  }
+  .row-checkbox {
+    width: 16px;
+  }
+  .row-icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+  }
+  .row-name {
+    flex: 2;
+    font-size: 12px;
+    color: #cccccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row-branch {
+    width: 100px;
+    font-size: 12px;
+    color: #cccccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row-remote {
+    width: 100px;
+    font-size: 12px;
+    color: #cccccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row-status {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* Log Area */
+  .log-area {
+    height: 200px;
+    border-top: 1px solid #3c3c3c;
+    padding: 8px 12px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .log-item {
+    line-height: 1.4;
+  }
 
   /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3c3c3c;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #474747;
+  }
 </style>
 </head>
 <body>
-  <header>
-    <div class="title-area">
-      <h1>🔄 Sync All Repos</h1>
-      <div class="subtitle">${result ? `上次完成: ${new Date().toLocaleTimeString()} (耗时 ${(result.duration / 1000).toFixed(1)}s)` : "就绪"}</div>
+  <div class="top-section">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-title">$(sync) Sync All Repos</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-primary" onclick="syncAll('full')">$(sync) 同步所有</button>
+        <button class="btn btn-secondary" onclick="syncAll('pull-only')">$(cloud-download) 仅拉取</button>
+        <button class="btn btn-secondary" onclick="syncAll('push-only')">$(cloud-upload) 仅推送</button>
+        <button class="btn btn-tertiary" onclick="addFolder()">$(add) 添加仓库</button>
+        <button class="btn btn-tertiary" onclick="rescan()">$(refresh) 重新扫描</button>
+      </div>
     </div>
-    
     <div class="config-bar">
-      <div class="config-item">
-        <label>PULL</label>
-        <select id="pullStrategy" onchange="saveConfig()">
-          <option value="merge" ${cfg.pullStrategy === "merge" ? "selected" : ""}>Merge</option>
-          <option value="rebase" ${cfg.pullStrategy === "rebase" ? "selected" : ""}>Rebase</option>
-          <option value="ff-only" ${cfg.pullStrategy === "ff-only" ? "selected" : ""}>FF-Only</option>
+      <div class="config-group">
+        <span class="config-label">Pull策略:</span>
+        <select class="config-select" id="pullStrategy" onchange="saveConfig()">
+          <option value="merge" ${cfg.pullStrategy === "merge" ? "selected" : ""}>merge</option>
+          <option value="rebase" ${cfg.pullStrategy === "rebase" ? "selected" : ""}>rebase</option>
+          <option value="ff-only" ${cfg.pullStrategy === "ff-only" ? "selected" : ""}>ff-only</option>
         </select>
       </div>
-      <div class="config-item">
-        <label>PUSH</label>
-        <select id="pushStrategy" onchange="saveConfig()">
-          <option value="normal" ${cfg.pushStrategy === "normal" ? "selected" : ""}>Normal</option>
-          <option value="force-with-lease" ${cfg.pushStrategy === "force-with-lease" ? "selected" : ""}>Force</option>
-          <option value="skip" ${cfg.pushStrategy === "skip" ? "selected" : ""}>Skip</option>
+      <div class="config-group">
+        <span class="config-label">Push策略:</span>
+        <select class="config-select" id="pushStrategy" onchange="saveConfig()">
+          <option value="normal" ${cfg.pushStrategy === "normal" ? "selected" : ""}>normal</option>
+          <option value="force-with-lease" ${cfg.pushStrategy === "force-with-lease" ? "selected" : ""}>force</option>
+          <option value="skip" ${cfg.pushStrategy === "skip" ? "selected" : ""}>skip</option>
         </select>
       </div>
-      <div class="config-item">
-        <label>并发</label>
-        <input type="number" id="concurrency" min="1" max="10" value="${cfg.concurrency || 3}" onchange="saveConfig()" />
+      <div class="config-group">
+        <span class="config-label">并发数:</span>
+        <input type="number" class="config-input" id="concurrency" min="1" max="10" value="${cfg.concurrency || 3}" onchange="saveConfig()" />
       </div>
-      <div class="config-item" title="推送前自动提交">
-        <label>自动提交</label>
-        <input type="checkbox" id="commitBeforePush" ${cfg.commitBeforePush ? "checked" : ""} onchange="saveConfig()" />
+      <div class="config-group">
+        <input type="checkbox" class="config-checkbox" id="commitBeforePush" ${cfg.commitBeforePush ? "checked" : ""} onchange="saveConfig()" />
+        <span class="config-label">推送前自动提交</span>
       </div>
-      <div class="config-item" title="保存文件时同步">
-        <label>保存同步</label>
-        <input type="checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave ? "checked" : ""} onchange="saveConfig()" />
+      <div class="config-group">
+        <input type="checkbox" class="config-checkbox" id="autoSyncOnSave" ${cfg.autoSyncOnSave ? "checked" : ""} onchange="saveConfig()" />
+        <span class="config-label">保存时自动同步</span>
       </div>
-      <div class="config-item">
-        <button class="btn" onclick="openSettings()" title="详细设置">⚙️</button>
-      </div>
-    </div>
-  </header>
-
-  <div class="stats-bar">
-    <div class="stat-pill total"><span class="label">总计</span><span class="val">${result ? result.total : allRepos.length}</span></div>
-    <div class="stat-pill success"><span class="label">成功</span><span class="val">${result ? result.succeeded : 0}</span></div>
-    <div class="stat-pill error"><span class="label">失败</span><span class="val">${result ? result.failed : 0}</span></div>
-    <div class="progress-mini"><div class="progress-fill" style="width: ${successRate}%"></div></div>
-    <button class="btn success" onclick="refreshStatus()" title="刷新状态">🔄 刷新状态</button>
-    <button class="btn primary" onclick="syncAll()" title="同步所有">🚀 同步所有</button>
-  </div>
-
-  <div class="toolbar">
-    <div class="bulk-actions">
-      <button class="btn" id="btn-sync-sel" disabled onclick="bulkAction('full')">🔄 同步选中</button>
-      <button class="btn" id="btn-pull-sel" disabled onclick="bulkAction('pull-only')">⬇️ 仅拉取</button>
-      <button class="btn" id="btn-push-sel" disabled onclick="bulkAction('push-only')">⬆️ 仅推送</button>
-      <span style="color:var(--muted); font-size:10px; margin-left:8px" id="selected-count">未选中</span>
-    </div>
-    <div class="search-box">
-      <input type="text" id="search" placeholder="搜索仓库..." oninput="filterTable()" />
-    </div>
-    <div class="global-actions">
-      <button class="btn" onclick="addFolder()">+ 添加目录</button>
-      <button class="btn" onclick="rescan()">🔍 重新扫描</button>
     </div>
   </div>
 
-  <div class="table-container">
-    <table id="repoTable">
-      <thead>
-        <tr>
-          <th class="checkbox-col"><input type="checkbox" id="check-all" onchange="toggleAll()"></th>
-          <th class="icon-col"></th>
-          <th class="name-col">仓库</th>
-          <th class="branch-col">分支</th>
-          <th class="remotes-col">远程仓库</th>
-          <th class="ahead-behind-col">进度</th>
-          <th class="message-col">状态/消息</th>
-          <th class="action-col">操作</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        ${rows || '<tr><td colspan="8" class="no-data">未找到仓库，请点击“添加目录”或“重新扫描”</td></tr>'}
-      </tbody>
-    </table>
+  <div class="bottom-section">
+    <div class="stats-bar">
+      <div class="status-group">
+        <div class="status-dot"></div>
+        <span class="status-text">就绪</span>
+      </div>
+      <div class="divider"></div>
+      <span class="stats-info">总计: ${stats.total} | 成功: ${stats.success} | 失败: ${stats.failed} | 跳过: ${stats.skipped}</span>
+      <div class="stats-spacer"></div>
+      <span class="last-sync">上次同步: ${result ? new Date().toLocaleTimeString() : '未同步'}</span>
+    </div>
+    <div class="separator"></div>
+    <div class="repo-table">
+      ${rows || '<div style="padding: 40px; text-align: center; color: #858585;">未找到仓库，请点击"添加仓库"或"重新扫描"</div>'}
+    </div>
+    <div class="log-area">
+      ${logs}
+    </div>
   </div>
 
 <script>
@@ -623,73 +773,19 @@ function buildUnifiedHtml(
     vscode.postMessage({ command: 'save', data });
   }
 
-  function openRepo(p) { vscode.postMessage({ command: 'openRepo', path: p }); }
-  function syncRepo(p, mode) { vscode.postMessage({ command: 'sync', paths: [p], mode }); }
-  function syncAll() { vscode.postMessage({ command: 'syncAll' }); }
-  function addFolder() { vscode.postMessage({ command: 'addFolder' }); }
-  function openSettings() { vscode.postMessage({ command: 'openSettings' }); }
-  function rescan() { vscode.postMessage({ command: 'rescan', depth: ${cfg.autoScanDepth || 3} }); }
-  function refreshStatus() { vscode.postMessage({ command: 'refresh' }); }
-
-  function toggleAll() {
-    const checkAll = document.getElementById('check-all');
-    document.querySelectorAll('.repo-checkbox').forEach(cb => {
-      const row = cb.closest('tr');
-      if (row.style.display !== 'none') {
-        cb.checked = checkAll.checked;
-      }
-    });
-    updateBulkUI();
+  function syncAll(mode) {
+    vscode.postMessage({ command: 'syncAll', mode });
   }
 
-  function updateBulkUI() {
-    const selected = document.querySelectorAll('.repo-checkbox:checked');
-    const count = selected.length;
-    const btnSync = document.getElementById('btn-sync-sel');
-    const btnPull = document.getElementById('btn-pull-sel');
-    const btnPush = document.getElementById('btn-push-sel');
-    const countText = document.getElementById('selected-count');
-    
-    const hasSelected = count > 0;
-    btnSync.disabled = !hasSelected;
-    btnPull.disabled = !hasSelected;
-    btnPush.disabled = !hasSelected;
-    countText.textContent = hasSelected ? '已选中 ' + count + ' 个' : '未选中';
+  function addFolder() {
+    vscode.postMessage({ command: 'addFolder' });
   }
 
-  function bulkAction(mode) {
-    const selectedPaths = [];
-    document.querySelectorAll('.repo-checkbox:checked').forEach(cb => {
-      const row = cb.closest('tr');
-      selectedPaths.push(row.dataset.path);
-    });
-    if (selectedPaths.length > 0) {
-      vscode.postMessage({ command: 'sync', paths: selectedPaths, mode });
-    }
+  function rescan() {
+    vscode.postMessage({ command: 'rescan', depth: ${cfg.autoScanDepth || 3} });
   }
 
-  function filterTable() {
-    const q = document.getElementById('search').value.toLowerCase();
-    document.querySelectorAll('#tableBody tr.repo-row').forEach(row => {
-      const name = row.querySelector('.name-col').textContent.toLowerCase();
-      row.style.display = name.includes(q) ? '' : 'none';
-    });
-  }
-
-  window.addEventListener('message', event => {
-    const msg = event.data;
-    switch (msg.command) {
-      case 'addPaths':
-        paths = [...new Set([...paths, ...msg.paths])];
-        saveConfig();
-        rescan();
-        break;
-      case 'setPaths':
-        paths = msg.paths;
-        saveConfig();
-        break;
-    }
-  });
+  function updateBulkUI() {}
 </script>
 </body>
 </html>`;

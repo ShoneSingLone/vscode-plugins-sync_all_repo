@@ -515,9 +515,298 @@
               "id": "Zi2v1",
               "name": "Repository Table",
               "width": "fill_container",
-              "height": "fill_container",
+              "height": 280,
               "fill": "#1e1e1e",
-              "layout": "vertical"
+              "layout": "vertical",
+              "padding": [
+                4,
+                0
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "repoRow1",
+                  "width": "fill_container",
+                  "height": 32,
+                  "fill": "transparent",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "chk1",
+                      "width": 16,
+                      "height": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "icon1",
+                      "fill": "#4ec9b0",
+                      "content": "✅",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "name1",
+                      "fill": "#cccccc",
+                      "content": "sync-all-repos",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "branch1",
+                      "fill": "#cccccc",
+                      "content": "main",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "remote1",
+                      "fill": "#cccccc",
+                      "content": "origin",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "status1",
+                      "fill": "#4ec9b0",
+                      "content": "已同步",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "repoRow2",
+                  "width": "fill_container",
+                  "height": 32,
+                  "fill": "#2a2a2a",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "chk2",
+                      "width": 16,
+                      "height": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "icon2",
+                      "fill": "#ffcc00",
+                      "content": "⚠️",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "name2",
+                      "fill": "#cccccc",
+                      "content": "api-service",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "branch2",
+                      "fill": "#cccccc",
+                      "content": "dev",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "remote2",
+                      "fill": "#cccccc",
+                      "content": "origin",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "status2",
+                      "fill": "#ffcc00",
+                      "content": "有更新",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "repoRow3",
+                  "width": "fill_container",
+                  "height": 32,
+                  "fill": "transparent",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "chk3",
+                      "width": 16,
+                      "height": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "icon3",
+                      "fill": "#f44747",
+                      "content": "❌",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "name3",
+                      "fill": "#cccccc",
+                      "content": "web-admin",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "branch3",
+                      "fill": "#cccccc",
+                      "content": "feature/login",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "remote3",
+                      "fill": "#cccccc",
+                      "content": "origin",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "status3",
+                      "fill": "#f44747",
+                      "content": "同步失败",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "logArea",
+              "name": "Log Area",
+              "width": "fill_container",
+              "height": 240,
+              "fill": "#1e1e1e",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "top": 1
+                },
+                "fill": "#3c3c3c"
+              },
+              "layout": "vertical",
+              "padding": [
+                8,
+                12
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "log1",
+                  "fill": "#858585",
+                  "content": "[INFO] 开始扫描仓库列表...",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "log2",
+                  "fill": "#cccccc",
+                  "content": "[CMD] git pull origin main",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "log3",
+                  "fill": "#4ec9b0",
+                  "content": "[SUCCESS] sync-all-repos 同步完成",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "log4",
+                  "fill": "#ffcc00",
+                  "content": "[WARN] api-service 存在未提交变更",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "log5",
+                  "fill": "#f44747",
+                  "content": "[ERROR] web-admin 推送失败: 网络超时",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
             }
           ]
         }
