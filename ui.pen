@@ -3,957 +3,523 @@
   "children": [
     {
       "type": "frame",
-      "id": "mainPanel",
-      "x": 0,
-      "y": 0,
-      "width": 800,
-      "height": 600,
-      "fill": "#1E1E1E",
-      "layout": "none",
-      "clip": true,
-      "name": "Sync All Repos Main Panel",
+      "id": "b5vRqs",
+      "x": 178,
+      "y": -195,
+      "name": "Sync All Repos - Main Panel",
+      "width": 900,
+      "height": 750,
+      "fill": "#1e1e1e",
+      "layout": "vertical",
       "children": [
         {
           "type": "frame",
-          "id": "toolbar",
-          "x": 20,
-          "y": 20,
-          "width": 760,
-          "height": 40,
+          "id": "rEf8T",
+          "name": "Top Section",
+          "width": "fill_container",
           "fill": "#252526",
-          "layout": "none",
-          "clip": true,
-          "name": "Toolbar",
-          "children": [
-            {
-              "type": "text",
-              "id": "title",
-              "x": 10,
-              "y": 10,
-              "text": "Sync All Repos",
-              "font": "Segoe UI",
-              "fontSize": 16,
-              "fill": "#FFFFFF",
-              "name": "Title"
-            },
-            {
-              "type": "rect",
-              "id": "syncAllBtn",
-              "x": 150,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#0E639C",
-              "radius": 4,
-              "name": "Sync All Button"
-            },
-            {
-              "type": "text",
-              "id": "syncAllText",
-              "x": 165,
-              "y": 12,
-              "text": "同步所有",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#FFFFFF",
-              "name": "Sync All Text"
-            },
-            {
-              "type": "rect",
-              "id": "pullOnlyBtn",
-              "x": 260,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#252526",
-              "stroke": "#0E639C",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Pull Only Button"
-            },
-            {
-              "type": "text",
-              "id": "pullOnlyText",
-              "x": 275,
-              "y": 12,
-              "text": "仅拉取",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#0E639C",
-              "name": "Pull Only Text"
-            },
-            {
-              "type": "rect",
-              "id": "pushOnlyBtn",
-              "x": 370,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#252526",
-              "stroke": "#0E639C",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Push Only Button"
-            },
-            {
-              "type": "text",
-              "id": "pushOnlyText",
-              "x": 385,
-              "y": 12,
-              "text": "仅推送",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#0E639C",
-              "name": "Push Only Text"
-            },
-            {
-              "type": "rect",
-              "id": "addRepoBtn",
-              "x": 480,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#252526",
-              "stroke": "#0E639C",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Add Repo Button"
-            },
-            {
-              "type": "text",
-              "id": "addRepoText",
-              "x": 495,
-              "y": 12,
-              "text": "添加仓库",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#0E639C",
-              "name": "Add Repo Text"
-            },
-            {
-              "type": "rect",
-              "id": "rescanBtn",
-              "x": 590,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#252526",
-              "stroke": "#0E639C",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Rescan Button"
-            },
-            {
-              "type": "text",
-              "id": "rescanText",
-              "x": 605,
-              "y": 12,
-              "text": "重新扫描",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#0E639C",
-              "name": "Rescan Text"
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "configBar",
-          "x": 20,
-          "y": 70,
-          "width": 760,
-          "height": 40,
-          "fill": "#252526",
-          "layout": "none",
-          "clip": true,
-          "name": "Configuration Bar",
-          "children": [
-            {
-              "type": "text",
-              "id": "pullStrategyLabel",
-              "x": 10,
-              "y": 12,
-              "text": "Pull 策略:",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Pull Strategy Label"
-            },
-            {
-              "type": "rect",
-              "id": "pullStrategySelect",
-              "x": 90,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#3C3C3C",
-              "stroke": "#666666",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Pull Strategy Select"
-            },
-            {
-              "type": "text",
-              "id": "pullStrategyValue",
-              "x": 100,
-              "y": 12,
-              "text": "merge",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#FFFFFF",
-              "name": "Pull Strategy Value"
-            },
-            {
-              "type": "text",
-              "id": "pushStrategyLabel",
-              "x": 210,
-              "y": 12,
-              "text": "Push 策略:",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Push Strategy Label"
-            },
-            {
-              "type": "rect",
-              "id": "pushStrategySelect",
-              "x": 290,
-              "y": 5,
-              "width": 100,
-              "height": 30,
-              "fill": "#3C3C3C",
-              "stroke": "#666666",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Push Strategy Select"
-            },
-            {
-              "type": "text",
-              "id": "pushStrategyValue",
-              "x": 300,
-              "y": 12,
-              "text": "normal",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#FFFFFF",
-              "name": "Push Strategy Value"
-            },
-            {
-              "type": "text",
-              "id": "concurrencyLabel",
-              "x": 410,
-              "y": 12,
-              "text": "并发数:",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Concurrency Label"
-            },
-            {
-              "type": "rect",
-              "id": "concurrencyInput",
-              "x": 470,
-              "y": 5,
-              "width": 50,
-              "height": 30,
-              "fill": "#3C3C3C",
-              "stroke": "#666666",
-              "strokeWidth": 1,
-              "radius": 4,
-              "name": "Concurrency Input"
-            },
-            {
-              "type": "text",
-              "id": "concurrencyValue",
-              "x": 480,
-              "y": 12,
-              "text": "3",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#FFFFFF",
-              "name": "Concurrency Value"
-            },
-            {
-              "type": "rect",
-              "id": "autoCommitCheckbox",
-              "x": 540,
-              "y": 10,
-              "width": 16,
-              "height": 16,
-              "fill": "#3C3C3C",
-              "stroke": "#666666",
-              "strokeWidth": 1,
-              "radius": 2,
-              "name": "Auto Commit Checkbox"
-            },
-            {
-              "type": "text",
-              "id": "autoCommitLabel",
-              "x": 560,
-              "y": 12,
-              "text": "推送前自动提交",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Auto Commit Label"
-            },
-            {
-              "type": "rect",
-              "id": "autoSyncCheckbox",
-              "x": 680,
-              "y": 10,
-              "width": 16,
-              "height": 16,
-              "fill": "#3C3C3C",
-              "stroke": "#666666",
-              "strokeWidth": 1,
-              "radius": 2,
-              "name": "Auto Sync Checkbox"
-            },
-            {
-              "type": "text",
-              "id": "autoSyncLabel",
-              "x": 700,
-              "y": 12,
-              "text": "保存时自动同步",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Auto Sync Label"
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "statusBar",
-          "x": 20,
-          "y": 120,
-          "width": 760,
-          "height": 30,
-          "fill": "#252526",
-          "layout": "none",
-          "clip": true,
-          "name": "Status Bar",
-          "children": [
-            {
-              "type": "text",
-              "id": "statusText",
-              "x": 10,
-              "y": 8,
-              "text": "就绪",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#4EC9B0",
-              "name": "Status Text"
-            },
-            {
-              "type": "text",
-              "id": "statsText",
-              "x": 600,
-              "y": 8,
-              "text": "总计: 0 | 成功: 0 | 失败: 0",
-              "font": "Segoe UI",
-              "fontSize": 12,
-              "fill": "#CCCCCC",
-              "name": "Stats Text"
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "repoList",
-          "x": 20,
-          "y": 160,
-          "width": 760,
-          "height": 230,
-          "fill": "#1E1E1E",
-          "layout": "none",
-          "clip": true,
-          "name": "Repository List",
+          "layout": "vertical",
           "children": [
             {
               "type": "frame",
-              "id": "repoListHeader",
-              "x": 0,
-              "y": 0,
-              "width": 760,
-              "height": 30,
-              "fill": "#252526",
-              "layout": "none",
-              "clip": true,
-              "name": "Repository List Header",
+              "id": "cgtbE",
+              "name": "toolbar",
+              "width": "fill_container",
+              "height": 48,
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#3c3c3c"
+              },
+              "gap": 8,
+              "padding": [
+                12,
+                8
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
               "children": [
                 {
-                  "type": "text",
-                  "id": "headerCheckbox",
-                  "x": 10,
-                  "y": 8,
-                  "text": "□",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Checkbox"
+                  "type": "frame",
+                  "id": "mrPEi",
+                  "name": "leftSide",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P5EJl",
+                      "fill": "#cccccc",
+                      "content": "$(sync-ignored) Sync All Repos",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "headerStatus",
-                  "x": 40,
-                  "y": 8,
-                  "text": "状态",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Status"
-                },
-                {
-                  "type": "text",
-                  "id": "headerName",
-                  "x": 80,
-                  "y": 8,
-                  "text": "仓库名称",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Name"
-                },
-                {
-                  "type": "text",
-                  "id": "headerBranch",
-                  "x": 280,
-                  "y": 8,
-                  "text": "分支",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Branch"
-                },
-                {
-                  "type": "text",
-                  "id": "headerRemote",
-                  "x": 380,
-                  "y": 8,
-                  "text": "远程仓库",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Remote"
-                },
-                {
-                  "type": "text",
-                  "id": "headerSyncStatus",
-                  "x": 580,
-                  "y": 8,
-                  "text": "同步状态",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Header Sync Status"
+                  "type": "frame",
+                  "id": "HPOgj",
+                  "name": "rightSide",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hTL7f",
+                      "name": "btn1",
+                      "fill": "#0e639c",
+                      "cornerRadius": 3,
+                      "padding": [
+                        12,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cUj0X",
+                          "fill": "#ffffff",
+                          "content": "$(sync) 同步所有",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FWPlc",
+                      "name": "btn2",
+                      "cornerRadius": 3,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#007acc"
+                      },
+                      "padding": [
+                        10,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TWKZj",
+                          "fill": "#007acc",
+                          "content": "$(cloud-download) 仅拉取",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "lE9Da",
+                      "name": "btn3",
+                      "cornerRadius": 3,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#007acc"
+                      },
+                      "padding": [
+                        10,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q4sag",
+                          "fill": "#007acc",
+                          "content": "$(cloud-upload) 仅推送",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "XP8LR",
+                      "name": "btn4",
+                      "cornerRadius": 3,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      },
+                      "padding": [
+                        10,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "K0pLHy",
+                          "fill": "#cccccc",
+                          "content": "$(add) 添加仓库",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "v2AZU1",
+                      "name": "btn5",
+                      "cornerRadius": 3,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      },
+                      "padding": [
+                        10,
+                        6
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "o09Xt",
+                          "fill": "#cccccc",
+                          "content": "$(refresh) 重新扫描",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "repoItem1",
-              "x": 0,
-              "y": 30,
-              "width": 760,
+              "id": "Q3nP7",
+              "name": "configBar",
+              "width": "fill_container",
+              "height": 44,
+              "fill": "#2d2d2d",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#3c3c3c"
+              },
+              "gap": 16,
+              "padding": [
+                12,
+                6
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "S8qA4g",
+                  "name": "pullGroup",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dCj2z",
+                      "fill": "#858585",
+                      "content": "Pull策略:",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "V3fgsS",
+                      "name": "pullDropdown",
+                      "width": 90,
+                      "height": 26,
+                      "fill": "#3c3c3c",
+                      "cornerRadius": 3,
+                      "padding": [
+                        8,
+                        4
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZLRyk",
+                          "fill": "#cccccc",
+                          "content": "merge ▾",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zhks6",
+                  "name": "pushGroup",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yxiog",
+                      "fill": "#858585",
+                      "content": "Push策略:",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M0Yk1V",
+                      "name": "pushDropdown",
+                      "width": 90,
+                      "height": 26,
+                      "fill": "#3c3c3c",
+                      "cornerRadius": 3,
+                      "padding": [
+                        8,
+                        4
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TNSUr",
+                          "fill": "#cccccc",
+                          "content": "normal ▾",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nnh2g",
+                  "name": "concGroup",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tcLUs",
+                      "fill": "#858585",
+                      "content": "并发数:",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ymeNV",
+                      "name": "concInput",
+                      "width": 50,
+                      "height": 26,
+                      "fill": "#3c3c3c",
+                      "cornerRadius": 3,
+                      "padding": [
+                        8,
+                        4
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Gbhrf",
+                          "fill": "#cccccc",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LPY63",
+                  "name": "check1Group",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "JvALS",
+                      "width": 16,
+                      "height": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "RyJ57",
+                      "fill": "#858585",
+                      "content": "推送前自动提交",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "oa5Rc",
+                  "name": "check2Group",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 2,
+                      "id": "utvxE",
+                      "width": 16,
+                      "height": 16,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#3c3c3c"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "M5vx9",
+                      "fill": "#858585",
+                      "content": "保存时自动同步",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pT44m",
+          "name": "Bottom Section",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#1e1e1e",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tKnt2",
+              "name": "Stats Bar",
+              "width": "fill_container",
               "height": 40,
-              "fill": "#252526",
-              "layout": "none",
-              "clip": true,
-              "name": "Repository Item 1",
+              "fill": "#2d2d2d",
+              "gap": 10,
+              "padding": [
+                12,
+                0
+              ],
+              "alignItems": "center",
               "children": [
                 {
-                  "type": "text",
-                  "id": "item1Checkbox",
-                  "x": 10,
-                  "y": 12,
-                  "text": "□",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Item 1 Checkbox"
+                  "type": "frame",
+                  "id": "A0vor",
+                  "name": "statusGroup",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "dI47H",
+                      "name": "statusDot",
+                      "fill": "#4ec9b0",
+                      "width": 8,
+                      "height": 8
+                    },
+                    {
+                      "type": "text",
+                      "id": "x7uAlp",
+                      "name": "statusText",
+                      "fill": "#4ec9b0",
+                      "content": "就绪",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Ywrgj",
+                  "name": "divider1",
+                  "fill": "#474747",
+                  "width": 1,
+                  "height": 20
                 },
                 {
                   "type": "text",
-                  "id": "item1Status",
-                  "x": 40,
-                  "y": 12,
-                  "text": "✓",
-                  "font": "Segoe UI",
+                  "id": "Y41qN",
+                  "name": "statsInfoTxt",
+                  "fill": "#858585",
+                  "content": "总计: 5  |  成功: 3  |  失败: 1  |  跳过: 1",
+                  "fontFamily": "Inter",
                   "fontSize": 12,
-                  "fill": "#4EC9B0",
-                  "name": "Item 1 Status"
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "on6e5",
+                  "name": "statsSpacerFrm",
+                  "width": "fill_container",
+                  "height": 1
                 },
                 {
                   "type": "text",
-                  "id": "item1Name",
-                  "x": 80,
-                  "y": 12,
-                  "text": "sync_all_repo",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 1 Name"
-                },
-                {
-                  "type": "text",
-                  "id": "item1Branch",
-                  "x": 280,
-                  "y": 12,
-                  "text": "main",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 1 Branch"
-                },
-                {
-                  "type": "text",
-                  "id": "item1Remote",
-                  "x": 380,
-                  "y": 12,
-                  "text": "origin",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 1 Remote"
-                },
-                {
-                  "type": "text",
-                  "id": "item1SyncStatus",
-                  "x": 580,
-                  "y": 12,
-                  "text": "已同步",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#4EC9B0",
-                  "name": "Item 1 Sync Status"
+                  "id": "uVwwA",
+                  "name": "lastSyncTxt",
+                  "fill": "#636363",
+                  "content": "上次同步: 刚刚",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
                 }
               ]
             },
             {
-              "type": "frame",
-              "id": "repoItem2",
-              "x": 0,
-              "y": 70,
-              "width": 760,
-              "height": 40,
-              "fill": "#1E1E1E",
-              "layout": "none",
-              "clip": true,
-              "name": "Repository Item 2",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "item2Checkbox",
-                  "x": 10,
-                  "y": 12,
-                  "text": "□",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Item 2 Checkbox"
-                },
-                {
-                  "type": "text",
-                  "id": "item2Status",
-                  "x": 40,
-                  "y": 12,
-                  "text": "!",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFCC00",
-                  "name": "Item 2 Status"
-                },
-                {
-                  "type": "text",
-                  "id": "item2Name",
-                  "x": 80,
-                  "y": 12,
-                  "text": "example-repo",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 2 Name"
-                },
-                {
-                  "type": "text",
-                  "id": "item2Branch",
-                  "x": 280,
-                  "y": 12,
-                  "text": "develop",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 2 Branch"
-                },
-                {
-                  "type": "text",
-                  "id": "item2Remote",
-                  "x": 380,
-                  "y": 12,
-                  "text": "origin",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 2 Remote"
-                },
-                {
-                  "type": "text",
-                  "id": "item2SyncStatus",
-                  "x": 580,
-                  "y": 12,
-                  "text": "有更新",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFCC00",
-                  "name": "Item 2 Sync Status"
-                }
-              ]
+              "type": "rectangle",
+              "id": "viiWf",
+              "name": "sepBar",
+              "fill": "#3c3c3c",
+              "width": "fill_container",
+              "height": 1
             },
             {
               "type": "frame",
-              "id": "repoItem3",
-              "x": 0,
-              "y": 110,
-              "width": 760,
-              "height": 40,
-              "fill": "#252526",
-              "layout": "none",
-              "clip": true,
-              "name": "Repository Item 3",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "item3Checkbox",
-                  "x": 10,
-                  "y": 12,
-                  "text": "□",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Item 3 Checkbox"
-                },
-                {
-                  "type": "text",
-                  "id": "item3Status",
-                  "x": 40,
-                  "y": 12,
-                  "text": "×",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#F48771",
-                  "name": "Item 3 Status"
-                },
-                {
-                  "type": "text",
-                  "id": "item3Name",
-                  "x": 80,
-                  "y": 12,
-                  "text": "test-repo",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 3 Name"
-                },
-                {
-                  "type": "text",
-                  "id": "item3Branch",
-                  "x": 280,
-                  "y": 12,
-                  "text": "main",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 3 Branch"
-                },
-                {
-                  "type": "text",
-                  "id": "item3Remote",
-                  "x": 380,
-                  "y": 12,
-                  "text": "origin",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#FFFFFF",
-                  "name": "Item 3 Remote"
-                },
-                {
-                  "type": "text",
-                  "id": "item3SyncStatus",
-                  "x": 580,
-                  "y": 12,
-                  "text": "同步失败",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#F48771",
-                  "name": "Item 3 Sync Status"
-                }
-              ]
+              "id": "Zi2v1",
+              "name": "Repository Table",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#1e1e1e",
+              "layout": "vertical"
             }
           ]
-        },
-        {
-          "type": "frame",
-          "id": "logPanel",
-          "x": 20,
-          "y": 400,
-          "width": 760,
-          "height": 150,
-          "fill": "#1E1E1E",
-          "layout": "none",
-          "clip": true,
-          "name": "Log Panel",
-          "children": [
-            {
-              "type": "frame",
-              "id": "logHeader",
-              "x": 0,
-              "y": 0,
-              "width": 760,
-              "height": 25,
-              "fill": "#252526",
-              "layout": "none",
-              "clip": true,
-              "name": "Log Header",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "logTitle",
-                  "x": 10,
-                  "y": 6,
-                  "text": "执行日志",
-                  "font": "Segoe UI",
-                  "fontSize": 12,
-                  "fill": "#CCCCCC",
-                  "name": "Log Title"
-                },
-                {
-                  "type": "rect",
-                  "id": "filterInput",
-                  "x": 120,
-                  "y": 3,
-                  "width": 150,
-                  "height": 18,
-                  "fill": "#3C3C3C",
-                  "stroke": "#666666",
-                  "strokeWidth": 1,
-                  "radius": 3,
-                  "name": "Filter Input"
-                },
-                {
-                  "type": "text",
-                  "id": "filterPlaceholder",
-                  "x": 130,
-                  "y": 6,
-                  "text": "搜索日志...",
-                  "font": "Segoe UI",
-                  "fontSize": 11,
-                  "fill": "#666666",
-                  "name": "Filter Placeholder"
-                },
-                {
-                  "type": "rect",
-                  "id": "clearBtn",
-                  "x": 280,
-                  "y": 3,
-                  "width": 50,
-                  "height": 18,
-                  "fill": "#252526",
-                  "stroke": "#666666",
-                  "strokeWidth": 1,
-                  "radius": 3,
-                  "name": "Clear Button"
-                },
-                {
-                  "type": "text",
-                  "id": "clearText",
-                  "x": 290,
-                  "y": 6,
-                  "text": "清空",
-                  "font": "Segoe UI",
-                  "fontSize": 11,
-                  "fill": "#CCCCCC",
-                  "name": "Clear Text"
-                },
-                {
-                  "type": "rect",
-                  "id": "exportBtn",
-                  "x": 340,
-                  "y": 3,
-                  "width": 50,
-                  "height": 18,
-                  "fill": "#252526",
-                  "stroke": "#666666",
-                  "strokeWidth": 1,
-                  "radius": 3,
-                  "name": "Export Button"
-                },
-                {
-                  "type": "text",
-                  "id": "exportText",
-                  "x": 350,
-                  "y": 6,
-                  "text": "导出",
-                  "font": "Segoe UI",
-                  "fontSize": 11,
-                  "fill": "#CCCCCC",
-                  "name": "Export Text"
-                },
-                {
-                  "type": "rect",
-                  "id": "pauseBtn",
-                  "x": 400,
-                  "y": 3,
-                  "width": 50,
-                  "height": 18,
-                  "fill": "#252526",
-                  "stroke": "#666666",
-                  "strokeWidth": 1,
-                  "radius": 3,
-                  "name": "Pause Button"
-                },
-                {
-                  "type": "text",
-                  "id": "pauseText",
-                  "x": 410,
-                  "y": 6,
-                  "text": "暂停",
-                  "font": "Segoe UI",
-                  "fontSize": 11,
-                  "fill": "#CCCCCC",
-                  "name": "Pause Text"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "logContent",
-              "x": 0,
-              "y": 25,
-              "width": 760,
-              "height": 125,
-              "fill": "#1E1E1E",
-              "layout": "none",
-              "clip": true,
-              "name": "Log Content",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "logLine1",
-                  "x": 5,
-                  "y": 5,
-                  "text": "[INFO] 扩展已启动，正在加载配置...",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#FFFFFF",
-                  "name": "Log Line 1"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine2",
-                  "x": 5,
-                  "y": 20,
-                  "text": "[INFO] 扫描仓库目录，共发现 3 个仓库",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#FFFFFF",
-                  "name": "Log Line 2"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine3",
-                  "x": 5,
-                  "y": 35,
-                  "text": "[CMD] git status",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#00BFFF",
-                  "name": "Log Line 3"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine4",
-                  "x": 5,
-                  "y": 50,
-                  "text": "[SUCCESS] 仓库 sync_all_repo 状态检查完成",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#4EC9B0",
-                  "name": "Log Line 4"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine5",
-                  "x": 5,
-                  "y": 65,
-                  "text": "[WARN] 仓库 example-repo 有未提交的变更",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#FFCC00",
-                  "name": "Log Line 5"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine6",
-                  "x": 5,
-                  "y": 80,
-                  "text": "[ERROR] 仓库 test-repo 同步失败: 网络连接超时",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#F48771",
-                  "name": "Log Line 6"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine7",
-                  "x": 5,
-                  "y": 95,
-                  "text": "[INFO] 同步任务已完成",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#FFFFFF",
-                  "name": "Log Line 7"
-                },
-                {
-                  "type": "text",
-                  "id": "logLine8",
-                  "x": 5,
-                  "y": 110,
-                  "text": "[SUCCESS] 成功: 1 | 失败: 1 | 跳过: 1",
-                  "font": "Consolas",
-                  "fontSize": 11,
-                  "fill": "#4EC9B0",
-                  "name": "Log Line 8"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "statusBarItem",
-      "x": 0,
-      "y": 600,
-      "width": 800,
-      "height": 30,
-      "fill": "#252526",
-      "layout": "none",
-      "clip": true,
-      "name": "Status Bar Item",
-      "children": [
-        {
-          "type": "text",
-          "id": "statusBarText",
-          "x": 10,
-          "y": 8,
-          "text": "Sync All Repos: 就绪",
-          "font": "Segoe UI",
-          "fontSize": 12,
-          "fill": "#4EC9B0",
-          "name": "Status Bar Text"
         }
       ]
     }
