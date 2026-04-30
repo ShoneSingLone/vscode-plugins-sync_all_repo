@@ -365,7 +365,7 @@
           "x": 20,
           "y": 160,
           "width": 760,
-          "height": 380,
+          "height": 230,
           "fill": "#1E1E1E",
           "layout": "none",
           "clip": true,
@@ -688,6 +688,243 @@
                   "fontSize": 12,
                   "fill": "#F48771",
                   "name": "Item 3 Sync Status"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "logPanel",
+          "x": 20,
+          "y": 400,
+          "width": 760,
+          "height": 150,
+          "fill": "#1E1E1E",
+          "layout": "none",
+          "clip": true,
+          "name": "Log Panel",
+          "children": [
+            {
+              "type": "frame",
+              "id": "logHeader",
+              "x": 0,
+              "y": 0,
+              "width": 760,
+              "height": 25,
+              "fill": "#252526",
+              "layout": "none",
+              "clip": true,
+              "name": "Log Header",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "logTitle",
+                  "x": 10,
+                  "y": 6,
+                  "text": "执行日志",
+                  "font": "Segoe UI",
+                  "fontSize": 12,
+                  "fill": "#CCCCCC",
+                  "name": "Log Title"
+                },
+                {
+                  "type": "rect",
+                  "id": "filterInput",
+                  "x": 120,
+                  "y": 3,
+                  "width": 150,
+                  "height": 18,
+                  "fill": "#3C3C3C",
+                  "stroke": "#666666",
+                  "strokeWidth": 1,
+                  "radius": 3,
+                  "name": "Filter Input"
+                },
+                {
+                  "type": "text",
+                  "id": "filterPlaceholder",
+                  "x": 130,
+                  "y": 6,
+                  "text": "搜索日志...",
+                  "font": "Segoe UI",
+                  "fontSize": 11,
+                  "fill": "#666666",
+                  "name": "Filter Placeholder"
+                },
+                {
+                  "type": "rect",
+                  "id": "clearBtn",
+                  "x": 280,
+                  "y": 3,
+                  "width": 50,
+                  "height": 18,
+                  "fill": "#252526",
+                  "stroke": "#666666",
+                  "strokeWidth": 1,
+                  "radius": 3,
+                  "name": "Clear Button"
+                },
+                {
+                  "type": "text",
+                  "id": "clearText",
+                  "x": 290,
+                  "y": 6,
+                  "text": "清空",
+                  "font": "Segoe UI",
+                  "fontSize": 11,
+                  "fill": "#CCCCCC",
+                  "name": "Clear Text"
+                },
+                {
+                  "type": "rect",
+                  "id": "exportBtn",
+                  "x": 340,
+                  "y": 3,
+                  "width": 50,
+                  "height": 18,
+                  "fill": "#252526",
+                  "stroke": "#666666",
+                  "strokeWidth": 1,
+                  "radius": 3,
+                  "name": "Export Button"
+                },
+                {
+                  "type": "text",
+                  "id": "exportText",
+                  "x": 350,
+                  "y": 6,
+                  "text": "导出",
+                  "font": "Segoe UI",
+                  "fontSize": 11,
+                  "fill": "#CCCCCC",
+                  "name": "Export Text"
+                },
+                {
+                  "type": "rect",
+                  "id": "pauseBtn",
+                  "x": 400,
+                  "y": 3,
+                  "width": 50,
+                  "height": 18,
+                  "fill": "#252526",
+                  "stroke": "#666666",
+                  "strokeWidth": 1,
+                  "radius": 3,
+                  "name": "Pause Button"
+                },
+                {
+                  "type": "text",
+                  "id": "pauseText",
+                  "x": 410,
+                  "y": 6,
+                  "text": "暂停",
+                  "font": "Segoe UI",
+                  "fontSize": 11,
+                  "fill": "#CCCCCC",
+                  "name": "Pause Text"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "logContent",
+              "x": 0,
+              "y": 25,
+              "width": 760,
+              "height": 125,
+              "fill": "#1E1E1E",
+              "layout": "none",
+              "clip": true,
+              "name": "Log Content",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "logLine1",
+                  "x": 5,
+                  "y": 5,
+                  "text": "[INFO] 扩展已启动，正在加载配置...",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#FFFFFF",
+                  "name": "Log Line 1"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine2",
+                  "x": 5,
+                  "y": 20,
+                  "text": "[INFO] 扫描仓库目录，共发现 3 个仓库",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#FFFFFF",
+                  "name": "Log Line 2"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine3",
+                  "x": 5,
+                  "y": 35,
+                  "text": "[CMD] git status",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#00BFFF",
+                  "name": "Log Line 3"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine4",
+                  "x": 5,
+                  "y": 50,
+                  "text": "[SUCCESS] 仓库 sync_all_repo 状态检查完成",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#4EC9B0",
+                  "name": "Log Line 4"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine5",
+                  "x": 5,
+                  "y": 65,
+                  "text": "[WARN] 仓库 example-repo 有未提交的变更",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#FFCC00",
+                  "name": "Log Line 5"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine6",
+                  "x": 5,
+                  "y": 80,
+                  "text": "[ERROR] 仓库 test-repo 同步失败: 网络连接超时",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#F48771",
+                  "name": "Log Line 6"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine7",
+                  "x": 5,
+                  "y": 95,
+                  "text": "[INFO] 同步任务已完成",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#FFFFFF",
+                  "name": "Log Line 7"
+                },
+                {
+                  "type": "text",
+                  "id": "logLine8",
+                  "x": 5,
+                  "y": 110,
+                  "text": "[SUCCESS] 成功: 1 | 失败: 1 | 跳过: 1",
+                  "font": "Consolas",
+                  "fontSize": 11,
+                  "fill": "#4EC9B0",
+                  "name": "Log Line 8"
                 }
               ]
             }
