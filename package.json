@@ -1,0 +1,169 @@
+{
+  "name": "git-subtree-manager",
+  "displayName": "Git Subtree Manager",
+  "description": "可视化管理 Git Subtree，支持批量同步、拉取、推送等操作",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onView:shone.sing.lone.gitSubtreeManager",
+    "onCommand:shone.sing.lone.gitSubtreeManager.refresh",
+    "onCommand:shone.sing.lone.gitSubtreeManager.pullAll",
+    "onCommand:shone.sing.lone.gitSubtreeManager.pushAll",
+    "onCommand:shone.sing.lone.gitSubtreeManager.syncAll",
+    "onCommand:shone.sing.lone.gitSubtreeManager.addSubtree",
+    "onCommand:shone.sing.lone.gitSubtreeManager.removeSubtree",
+    "onCommand:shone.sing.lone.gitSubtreeManager.pull",
+    "onCommand:shone.sing.lone.gitSubtreeManager.push",
+    "onCommand:shone.sing.lone.gitSubtreeManager.init",
+    "onCommand:shone.sing.lone.gitSubtreeManager.unbind",
+    "onCommand:shone.sing.lone.gitSubtreeManager.info"
+  ],
+  "contributes": {
+    "views": {
+      "activitybar": [
+        {
+          "id": "shone.sing.lone.gitSubtreeManager",
+          "name": "Git Subtree",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.refresh",
+        "title": "刷新 Subtree 列表",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.pullAll",
+        "title": "全部拉取",
+        "icon": "$(download)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.pushAll",
+        "title": "全部推送",
+        "icon": "$(upload)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.syncAll",
+        "title": "批量同步",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.addSubtree",
+        "title": "新增子树",
+        "icon": "$(add)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.removeSubtree",
+        "title": "移除子树",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.pull",
+        "title": "从远程拉取更新",
+        "icon": "$(download)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.push",
+        "title": "推送到远程",
+        "icon": "$(upload)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.init",
+        "title": "初始化为 Subtree",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.unbind",
+        "title": "解绑 Subtree",
+        "icon": "$(git-merge)"
+      },
+      {
+        "command": "shone.sing.lone.gitSubtreeManager.info",
+        "title": "查看 Subtree 信息",
+        "icon": "$(info)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.refresh",
+          "when": "view == shone.sing.lone.gitSubtreeManager",
+          "group": "navigation"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.syncAll",
+          "when": "view == shone.sing.lone.gitSubtreeManager",
+          "group": "navigation"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.pullAll",
+          "when": "view == shone.sing.lone.gitSubtreeManager",
+          "group": "navigation"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.pushAll",
+          "when": "view == shone.sing.lone.gitSubtreeManager",
+          "group": "navigation"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.addSubtree",
+          "when": "view == shone.sing.lone.gitSubtreeManager",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.pull",
+          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.push",
+          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.info",
+          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
+        },
+        {
+          "command": "shone.sing.lone.gitSubtreeManager.removeSubtree",
+          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "shone.sing.lone.gitSubtreeManager.subtreeMenu",
+          "group": "subtree@1"
+        }
+      ],
+      "submenus": [
+        {
+          "id": "shone.sing.lone.gitSubtreeManager.subtreeMenu",
+          "label": "Subtree 操作"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "vscode": "^1.1.37"
+  }
+}
