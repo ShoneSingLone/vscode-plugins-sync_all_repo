@@ -1,169 +1,136 @@
 {
-  "name": "git-subtree-manager",
-  "displayName": "Git Subtree Manager",
-  "description": "可视化管理 Git Subtree，支持批量同步、拉取、推送等操作",
-  "version": "1.0.0",
-  "engines": {
-    "vscode": "^1.80.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "main": "./out/extension.js",
-  "activationEvents": [
-    "onView:shone.sing.lone.gitSubtreeManager",
-    "onCommand:shone.sing.lone.gitSubtreeManager.refresh",
-    "onCommand:shone.sing.lone.gitSubtreeManager.pullAll",
-    "onCommand:shone.sing.lone.gitSubtreeManager.pushAll",
-    "onCommand:shone.sing.lone.gitSubtreeManager.syncAll",
-    "onCommand:shone.sing.lone.gitSubtreeManager.addSubtree",
-    "onCommand:shone.sing.lone.gitSubtreeManager.removeSubtree",
-    "onCommand:shone.sing.lone.gitSubtreeManager.pull",
-    "onCommand:shone.sing.lone.gitSubtreeManager.push",
-    "onCommand:shone.sing.lone.gitSubtreeManager.init",
-    "onCommand:shone.sing.lone.gitSubtreeManager.unbind",
-    "onCommand:shone.sing.lone.gitSubtreeManager.info"
-  ],
-  "contributes": {
-    "views": {
-      "activitybar": [
-        {
-          "id": "shone.sing.lone.gitSubtreeManager",
-          "name": "Git Subtree",
-          "icon": "resources/icon.svg"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.refresh",
-        "title": "刷新 Subtree 列表",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.pullAll",
-        "title": "全部拉取",
-        "icon": "$(download)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.pushAll",
-        "title": "全部推送",
-        "icon": "$(upload)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.syncAll",
-        "title": "批量同步",
-        "icon": "$(sync)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.addSubtree",
-        "title": "新增子树",
-        "icon": "$(add)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.removeSubtree",
-        "title": "移除子树",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.pull",
-        "title": "从远程拉取更新",
-        "icon": "$(download)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.push",
-        "title": "推送到远程",
-        "icon": "$(upload)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.init",
-        "title": "初始化为 Subtree",
-        "icon": "$(git-branch)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.unbind",
-        "title": "解绑 Subtree",
-        "icon": "$(git-merge)"
-      },
-      {
-        "command": "shone.sing.lone.gitSubtreeManager.info",
-        "title": "查看 Subtree 信息",
-        "icon": "$(info)"
-      }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.refresh",
-          "when": "view == shone.sing.lone.gitSubtreeManager",
-          "group": "navigation"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.syncAll",
-          "when": "view == shone.sing.lone.gitSubtreeManager",
-          "group": "navigation"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.pullAll",
-          "when": "view == shone.sing.lone.gitSubtreeManager",
-          "group": "navigation"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.pushAll",
-          "when": "view == shone.sing.lone.gitSubtreeManager",
-          "group": "navigation"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.addSubtree",
-          "when": "view == shone.sing.lone.gitSubtreeManager",
-          "group": "navigation"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.pull",
-          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.push",
-          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.info",
-          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
-        },
-        {
-          "command": "shone.sing.lone.gitSubtreeManager.removeSubtree",
-          "when": "view == shone.sing.lone.gitSubtreeManager && viewItem == subtree"
-        }
-      ],
-      "explorer/context": [
-        {
-          "submenu": "shone.sing.lone.gitSubtreeManager.subtreeMenu",
-          "group": "subtree@1"
-        }
-      ],
-      "submenus": [
-        {
-          "id": "shone.sing.lone.gitSubtreeManager.subtreeMenu",
-          "label": "Subtree 操作"
-        }
-      ]
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "package": "vsce package"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/vscode": "^1.80.0",
-    "typescript": "^5.0.0",
-    "vsce": "^2.15.0"
-  },
-  "dependencies": {
-    "vscode": "^1.1.37"
-  }
+	"name": "x-space-toolkit",
+	"displayName": "x-space Toolkit",
+	"description": "x-space 一站式开发助手：多仓库同步、代码智能跳转、规范提交",
+	"version": "1.0.0",
+	"publisher": "ShoneSingLone",
+	"engines": {
+		"vscode": "^1.83.0"
+	},
+	"repository": {
+		"url": "https://github.com/ShoneSingLone/sync_all_repo"
+	},
+	"categories": [
+		"Other",
+		"SCM Providers",
+		"Snippets"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"panel": [
+				{
+					"id": "shone.sing.lone.toolkit",
+					"title": "x-space 工作台",
+					"icon": "resources/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"panel": [
+				{
+					"type": "webview",
+					"id": "shone.sing.lone.toolkit.workbench",
+					"name": "x-space 工作台"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "shone.sing.lone.toolkit.refresh",
+				"title": "x-space: 刷新仓库状态",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.syncAll",
+				"title": "x-space: 全部同步",
+				"icon": "$(sync)"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.pullAll",
+				"title": "x-space: 全部拉取",
+				"icon": "$(cloud-download)"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.syncCurrent",
+				"title": "x-space: 同步当前仓库"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.pullCurrent",
+				"title": "x-space: 拉取当前仓库"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.statusCurrent",
+				"title": "x-space: 查看当前仓库状态"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.addRemote",
+				"title": "x-space: 添加远程"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.manageRemotes",
+				"title": "x-space: 管理远程"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.openTerminal",
+				"title": "x-space: 打开仓库终端"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.revealInExplorer",
+				"title": "x-space: 在资源管理器中显示仓库"
+			},
+			{
+				"command": "shone.sing.lone.toolkit.rescanConfigs",
+				"title": "x-space: 重新加载配置与函数索引"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "shone.sing.lone.toolkit.refresh",
+					"when": "view == shone.sing.lone.toolkit.workbench",
+					"group": "navigation@1"
+				},
+				{
+					"command": "shone.sing.lone.toolkit.pullAll",
+					"when": "view == shone.sing.lone.toolkit.workbench",
+					"group": "navigation@2"
+				},
+				{
+					"command": "shone.sing.lone.toolkit.syncAll",
+					"when": "view == shone.sing.lone.toolkit.workbench",
+					"group": "navigation@3"
+				}
+			]
+		},
+		"snippets": [
+			{
+				"language": "vue",
+				"path": "./snippets/xUI.json"
+			},
+			{
+				"language": "javascript",
+				"path": "./snippets/xUI.json"
+			},
+			{
+				"language": "typescript",
+				"path": "./snippets/xUI.json"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"package": "vsce package"
+	},
+	"devDependencies": {
+		"@types/node": "18.x",
+		"@types/vscode": "^1.83.0",
+		"typescript": "^5.0.0",
+		"vsce": "^2.15.0"
+	}
 }

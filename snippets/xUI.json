@@ -1,0 +1,117 @@
+{
+	"import dialog useDialogprops": {
+		"prefix": "ximvdialogprops",
+		"body": [
+			"const { $1useDialogProps } = await _.\\$importVue(\"/common/utils/hooks.vue\");"
+		],
+		"description": "import dialog useDialogprops"
+	},
+	"iife": {
+		"prefix": "iife",
+		"body": [
+			"(()=>{",
+			"$1",
+			"})();"
+		],
+		"description": "iife"
+	},
+	"boundless generate comment for scan": {
+		"prefix": "xgcomment",
+		"body": [
+			"/* @typescriptDeclare $2 */"
+		],
+		"description": "boundless generate comment for scan"
+	},
+	"boundless Vue SFC Dialog": {
+		"prefix": "xsfcdialog",
+		"body": [
+			"<template>",
+			"\t<xDialog>",
+			"\t\t<xCard>",
+			"\t\t\t<xForm col=\"1\" ref=\"form\">",
+			"\t\t\t\t<xItem :configs=\"form.name\" />",
+			"\t\t\t</xForm>",
+			"\t\t</xCard>",
+			"\t\t<template #footer>",
+			"\t\t\t<xBtn :configs=\"btnOk\" />",
+			"\t\t\t<xBtn @click=\"closeModal\">{{ i18n(\"取消\") }}</xBtn>",
+			"\t\t</template>",
+			"\t</xDialog>",
+			"</template>",
+			"<script lang=\"ts\">",
+			"export default async function ({ row }) {",
+			"\tconst isUpdate = !!row;",
+			"\tconst { useDialogProps } = await _.\\$importVue(\"/common/utils/hooks.vue\");",
+			"\treturn defineComponent({",
+			"\t\tprops: useDialogProps(),",
+			"\t\tmounted() {",
+			"\t\t\tthis.init();",
+			"\t\t},",
+			"\t\tdata() {",
+			"\t\t\treturn {",
+			"\t\t\t\tform: {",
+			"\t\t\t\t\tname: {",
+			"\t\t\t\t\t\tvalue: \"\",",
+			"\t\t\t\t\t\tlabel: i18n(\"name\"),",
+			"\t\t\t\t\t\tdisabled: isUpdate,",
+			"\t\t\t\t\t\trules: [_rules.required(), _rules.lessThan(50)]",
+			"\t\t\t\t\t}",
+			"\t\t\t\t}",
+			"\t\t\t};",
+			"\t\t},",
+			"\t\tcomputed: {",
+			"\t\t\tisUpdate() {",
+			"\t\t\t\treturn !!row;",
+			"\t\t\t},",
+			"\t\t\tbtnOk() {",
+			"\t\t\t\tconst vm = this;",
+			"\t\t\t\treturn {",
+			"\t\t\t\t\tlabel: i18n(\"确定\"),",
+			"\t\t\t\t\tpreset: \"blue\",",
+			"\t\t\t\t\tasync onClick() {",
+			"\t\t\t\t\t\tvm.onClickOk();",
+			"\t\t\t\t\t}",
+			"\t\t\t\t};",
+			"\t\t\t}",
+			"\t\t},",
+			"\t\tmethods: {",
+			"\t\t\tasync onClickOk() {",
+			"\t\t\t\tconst [error] = await _.\\$validateForm(this.$el);",
+			"\t\t\t\tif (error) {",
+			"\t\t\t\t\treturn;",
+			"\t\t\t\t}",
+			"\t\t\t\tthis.closeModal();",
+			"\t\t\t}",
+			"\t\t}",
+			"\t});",
+			"}",
+			"</script>"
+		],
+		"description": "dialog template"
+	},
+	"boundless Vue SFC template": {
+		"prefix": "xsfc",
+		"body": [
+			"<style lang=\"less\"></style>",
+			"<template>",
+			"    <div>{{ THIS_FILE_URL }}</div>",
+			"</template>",
+			"<script lang=\"ts\">",
+			"export default async function () {",
+			"    const { THIS_FILE_URL } = this;",
+			"    return defineComponent({",
+			"        data() {return {THIS_FILE_URL};}",
+			"    });",
+			"} ",
+			"</script>"
+		],
+		"description": "pure sfc template"
+	},
+	"importVueSFC": {
+		"prefix": "ximv",
+		"body": [
+			"const $2 = await _.\\$importVue(\"$1\")"
+		],
+		"description": "use _.$importVue load Vue SFC (custom)"
+	}
+}
