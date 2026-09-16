@@ -23,17 +23,17 @@
 		"viewsContainers": {
 			"panel": [
 				{
-					"id": "shone.sing.lone.toolkit",
+					"id": "shone-sing-lone-toolkit",
 					"title": "x-space 工作台",
 					"icon": "resources/icon.svg"
 				}
 			]
 		},
 		"views": {
-			"panel": [
+			"shone-sing-lone-toolkit": [
 				{
 					"type": "webview",
-					"id": "shone.sing.lone.toolkit.workbench",
+					"id": "shone-sing-lone-toolkit-workbench",
 					"name": "x-space 工作台"
 				}
 			]
@@ -91,17 +91,17 @@
 			"view/title": [
 				{
 					"command": "shone.sing.lone.toolkit.refresh",
-					"when": "view == shone.sing.lone.toolkit.workbench",
+					"when": "view == shone-sing-lone-toolkit-workbench",
 					"group": "navigation@1"
 				},
 				{
 					"command": "shone.sing.lone.toolkit.pullAll",
-					"when": "view == shone.sing.lone.toolkit.workbench",
+					"when": "view == shone-sing-lone-toolkit-workbench",
 					"group": "navigation@2"
 				},
 				{
 					"command": "shone.sing.lone.toolkit.syncAll",
-					"when": "view == shone.sing.lone.toolkit.workbench",
+					"when": "view == shone-sing-lone-toolkit-workbench",
 					"group": "navigation@3"
 				}
 			]

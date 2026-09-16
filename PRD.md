@@ -451,7 +451,7 @@ v1\.0 用规则模板生成（如「feat: 新增 xxx 功能」），可离线使
 
 ## 技术落地说明
 
-- **命名空间**：命令/视图 ID 统一 `shone.sing.lone.toolkit.*`（用户指定，防冲突）
+- **命名空间**：命令 ID 统一 `shone.sing.lone.toolkit.*`（命令允许点号）；视图容器/视图 ID 为 `shone-sing-lone-toolkit(-workbench)`（VS Code 限定 view id 仅字母数字 `_` `-`）
 - **零运行时依赖**：git 用 `child_process.execFile` 参数数组封装；修掉了旧 package.json 里废弃的 `"dependencies": {"vscode"}`
 - **项目结构**：`src/extension.ts` 入口 + `activationGuard.ts`（configs.boundless.vue.project.js 检测）+ modules/{workspacePanel, repoManager, syncEngine, codeAssistant, output} + commands/ + utils/；面板前端静态资源在 `webview/`
 - **未移植**：旧 helper 的 provider.Hover / provider.CodeAction 为残缺代码，未纳入

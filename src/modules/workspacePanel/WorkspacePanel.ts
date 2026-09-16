@@ -6,7 +6,7 @@ import * as git from "../../utils/git";
 import { OutputManager } from "../output/OutputManager";
 
 export class WorkspacePanel implements vscode.WebviewViewProvider {
-	public static readonly viewType = "shone.sing.lone.toolkit.workbench";
+	public static readonly viewType = "shone-sing-lone-toolkit-workbench";
 	private _view?: vscode.WebviewView;
 	private _disposables: vscode.Disposable[] = [];
 	private _repoManager: RepoManager;

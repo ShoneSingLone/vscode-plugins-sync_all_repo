@@ -37,9 +37,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	// 注册底部面板
 	workspacePanel = new WorkspacePanel(context, repoManager);
 	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider("shone.sing.lone.toolkit.workbench", workspacePanel, {
-			webviewOptions: { retainContextWhenHidden: true }
-		})
+		vscode.window.registerWebviewViewProvider(
+			"shone-sing-lone-toolkit-workbench",
+			workspacePanel,
+			{
+				webviewOptions: { retainContextWhenHidden: true }
+			}
+		)
 	);
 	repoManager.onChange(() => workspacePanel.sendUpdate());
 
