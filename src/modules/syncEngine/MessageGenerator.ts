@@ -37,6 +37,10 @@ const EXT_TYPE_MAP: Record<string, string> = {
 };
 
 function inferType(files: StagedFile[]): string {
+	// 纯删除 → refactor（与「删除 xxx」描述语义一致）
+	if (files.length > 0 && files.every(f => f.added === 0 && f.deleted > 0)) {
+		return "refactor";
+	}
 	const typeScores: Record<string, number> = { feat: 0, fix: 0, refactor: 0, docs: 0, style: 0, test: 0, chore: 0 };
 	for (const f of files) {
 		const ext = path.extname(f.file);

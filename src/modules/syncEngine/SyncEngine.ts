@@ -34,7 +34,7 @@ export async function syncRepo(
 			return { success: false, message: "暂存区无变更，已跳过" };
 		}
 
-		const { message: generated } = generateCommitMessage(staged, name, 1);
+		const { message: generated } = generateCommitMessage(staged, name, repo.level);
 		const edited = await vscode.window.showInputBox({
 			title: `${name} — commit message（可编辑）`,
 			value: generated,

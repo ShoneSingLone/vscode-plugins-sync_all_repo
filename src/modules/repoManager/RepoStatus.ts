@@ -11,12 +11,12 @@ export async function collectRepoView(repo: Repo): Promise<RepoView> {
 
 	const conflicts = porcelain.filter(git.isConflicted).length;
 	const dirty = porcelain.length;
-	const all = await git.getCurrentBranch(repo.path);
 
+	// 每个远程独立计算 ahead/behind（基于当前分支）
 	const remoteStatuses: RemoteStatus[] = [];
-	if (all) {
+	if (branch) {
 		for (const remote of remotes) {
-			const { ahead, behind } = await git.getAheadBehind(repo.path, remote.name, all);
+			const { ahead, behind } = await git.getAheadBehind(repo.path, remote.name, branch);
 			remoteStatuses.push({ name: remote.name, url: remote.url, ahead, behind });
 		}
 	}
@@ -28,6 +28,7 @@ export async function collectRepoView(repo: Repo): Promise<RepoView> {
 		branch,
 		remotes: remoteStatuses,
 		dirty,
-		conflicts
+		conflicts,
+		level: repo.level
 	};
 }

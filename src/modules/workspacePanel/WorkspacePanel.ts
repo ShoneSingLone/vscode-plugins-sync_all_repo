@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { RepoManager } from "../repoManager/RepoManager";
 import { syncRepo, pullRepo, syncAllDirty, pullAllRepos } from "../syncEngine/SyncEngine";
 import * as git from "../../utils/git";
 import { OutputManager } from "../output/OutputManager";
 
 export class WorkspacePanel implements vscode.WebviewViewProvider {
-	public static readonly viewType = "xspaceToolkit.workbench";
+	public static readonly viewType = "shone.sing.lone.toolkit.workbench";
 	private _view?: vscode.WebviewView;
 	private _disposables: vscode.Disposable[] = [];
 	private _repoManager: RepoManager;
@@ -24,7 +25,7 @@ export class WorkspacePanel implements vscode.WebviewViewProvider {
 		this._view = webviewView;
 		webviewView.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [vscode.Uri.joinPath(this._ctx.extensionUri, "webview")]
+			localResourceRoots: [vscode.Uri.file(path.join(this._ctx.extensionUri.fsPath, "webview"))]
 		};
 		webviewView.webview.html = this._getHtml(webviewView.webview);
 		webviewView.onDidDispose(() => {
@@ -40,6 +41,11 @@ export class WorkspacePanel implements vscode.WebviewViewProvider {
 			const repoId = payload?.repoId as string | undefined;
 			const repo = repoId ? this._repoManager.views.find(r => r.id === repoId) : undefined;
 			switch (type) {
+				case "ready": {
+					// webview 前端就绪，立即推送一次状态（解决 resolveWebviewView 早期推送丢失的竞态）
+					this._sendUpdate();
+					break;
+				}
 				case "sync": {
 					if (!repo) {
 						return;
@@ -138,17 +144,18 @@ export class WorkspacePanel implements vscode.WebviewViewProvider {
 
 	private _getHtml(webview: vscode.Webview): string {
 		const cssUri = webview.asWebviewUri(
-			vscode.Uri.joinPath(this._ctx.extensionUri, "webview", "panel.css")
+			vscode.Uri.file(path.join(this._ctx.extensionUri.fsPath, "webview", "panel.css"))
 		);
 		const jsUri = webview.asWebviewUri(
-			vscode.Uri.joinPath(this._ctx.extensionUri, "webview", "panel.js")
+			vscode.Uri.file(path.join(this._ctx.extensionUri.fsPath, "webview", "panel.js"))
 		);
+		const nonce = getNonce();
 		return /* html */ `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${_nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <link rel="stylesheet" href="${cssUri}"/>
 <title>x-space 工作台</title>
 </head>
@@ -161,13 +168,12 @@ export class WorkspacePanel implements vscode.WebviewViewProvider {
 </div>
 <div id="repoList" class="repo-list"></div>
 <div id="emptyState" class="empty-state" style="display:none;">无可管理的 Git 仓库</div>
-<script nonce="${_nonce}" src="${jsUri}"></script>
+<script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
 	}
 }
 
-let _nonce = "";
 function getNonce(): string {
 	let text = "";
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -175,9 +181,4 @@ function getNonce(): string {
 		text += chars.charAt(Math.floor(Math.random() * chars.length));
 	}
 	return text;
-}
-// 每次调用生成新 nonce
-NonceGenerator();
-function NonceGenerator() {
-	_nonce = getNonce();
 }

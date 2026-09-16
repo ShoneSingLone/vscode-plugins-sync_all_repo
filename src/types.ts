@@ -29,4 +29,6 @@ export interface RepoView {
 	dirty: number;
 	/** 冲突文件数 */
 	conflicts: number;
+	/** 仓库层级（scope 推断用：2 级直接用业务名） */
+	level: 1 | 2;
 }

@@ -427,4 +427,34 @@ v1\.0 用规则模板生成（如「feat: 新增 xxx 功能」），可离线使
 
 不会。配置格式保持不变，仍然使用 `configs.boundless.vue.project.js`。
 
+# 实施进度（2026\-09\-15 一期落地）
+
+一期工程已在 `E:\code\sync_all_repo` 原地重写完成（旧 git\-subtree\-manager 代码删除，git 历史保留可回退），`npm run compile` 零错误。**用户决策：不分 v1/v2，一期一次做完；跳过 TDD 节点直接编码。**
+
+## 已完成
+
+| 模块 | 状态 | 说明 |
+| --- | --- | --- |
+| A 多仓库工作台 | ✅ 已完成 | 底部面板 Webview（viewsContainers.panel），拍平列出 1/2 级仓库：分支、多远程 ↑↓ 徽标、脏数/冲突色点、行内 同步/拉取/状态/终端/资源管理器；顶栏搜索过滤 + 全部同步 + 全部拉取 + 刷新；`.git` watcher 防抖自动刷新；状态色走 `--vscode-*` 主题 token |
+| B 代码智能跳转 | ✅ 已完成 | 自 boundless\-vue\-helper TS 化移植：alias/`@/` 路径跳转、`_.$xxx` 跳 common.ts（自动扫描 + FileSystemWatcher 热更新）、组件标签跳转、`this.xxx` 内部引用、.vue 路径补全、xUI 代码片段（xsfc/xsfcdialog/ximv 等）；已适配多根工作区（rootPath 从 configs 所在 folder 取，不再用 `workspace.rootPath`） |
+| C 同步引擎 | ✅ 已完成 | add → 规则模板生成中文规范 commit（输入框预填可编辑）→ QuickPick 多选远程（workspaceState 记忆上次选择）→ 逐个 push 独立报告失败隔离；全部同步遍历脏仓库带进度；纯删除自动判 refactor |
+| D 快捷操作 | ✅ 已完成 | 命令面板 `x-space: *` 全命令化：同步/拉取/状态（当前+全部）、添加远程、管理远程（查看/改 URL/删除）、打开终端、资源管理器显示、重载配置索引 |
+
+验证：编译零错误；commit 生成器冒烟测试通过（2 级仓库 `feat(zhong_liang): 更新 src 等 2 个文件`）；修复三个隐患（webview ready 握手竞态、RepoView 缺 level 字段、纯删除 type 误判）。
+
+## 待人工验收
+
+1. F5 启动 Extension Development Host，打开 `x-space.workspace.code-workspace`
+2. 底部面板出现「x-space 工作台」Tab，~30 个仓库状态与命令行 git 一致
+3. 挑脏仓库走完整同步，`git log` 与远程核实
+4. 编辑器内回归六类 Definition 跳转（对照旧 boundless\-vue\-helper）
+
+## 技术落地说明
+
+- **命名空间**：命令/视图 ID 统一 `shone.sing.lone.toolkit.*`（用户指定，防冲突）
+- **零运行时依赖**：git 用 `child_process.execFile` 参数数组封装；修掉了旧 package.json 里废弃的 `"dependencies": {"vscode"}`
+- **项目结构**：`src/extension.ts` 入口 + `activationGuard.ts`（configs.boundless.vue.project.js 检测）+ modules/{workspacePanel, repoManager, syncEngine, codeAssistant, output} + commands/ + utils/；面板前端静态资源在 `webview/`
+- **未移植**：旧 helper 的 provider.Hover / provider.CodeAction 为残缺代码，未纳入
+- **一期不含**（原 v1.5/v2.0 规划项）：AI commit 生成、提交频率图表、pre\-commit hooks 自定义
+
 > （注：部分内容可能由 AI 生成）

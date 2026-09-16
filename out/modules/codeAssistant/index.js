@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.registerCompletionProvider = exports.registerDefinitionProvider = exports.VueLoader = exports.setupCommonTsWatcher = exports.scanCommonTsFile = exports.findCommonTsFile = exports.getScanResult = exports.normalizedAbsolutePathForFS = void 0;
+var AliasResolver_1 = require("./AliasResolver");
+Object.defineProperty(exports, "normalizedAbsolutePathForFS", { enumerable: true, get: function () { return AliasResolver_1.normalizedAbsolutePathForFS; } });
+var CommonScanner_1 = require("./CommonScanner");
+Object.defineProperty(exports, "getScanResult", { enumerable: true, get: function () { return CommonScanner_1.getScanResult; } });
+Object.defineProperty(exports, "findCommonTsFile", { enumerable: true, get: function () { return CommonScanner_1.findCommonTsFile; } });
+Object.defineProperty(exports, "scanCommonTsFile", { enumerable: true, get: function () { return CommonScanner_1.scanCommonTsFile; } });
+Object.defineProperty(exports, "setupCommonTsWatcher", { enumerable: true, get: function () { return CommonScanner_1.setupCommonTsWatcher; } });
+var VueLoader_1 = require("./VueLoader");
+Object.defineProperty(exports, "VueLoader", { enumerable: true, get: function () { return VueLoader_1.VueLoader; } });
+var DefinitionProvider_1 = require("./DefinitionProvider");
+Object.defineProperty(exports, "registerDefinitionProvider", { enumerable: true, get: function () { return DefinitionProvider_1.registerDefinitionProvider; } });
+var CompletionProvider_1 = require("./CompletionProvider");
+Object.defineProperty(exports, "registerCompletionProvider", { enumerable: true, get: function () { return CompletionProvider_1.registerCompletionProvider; } });

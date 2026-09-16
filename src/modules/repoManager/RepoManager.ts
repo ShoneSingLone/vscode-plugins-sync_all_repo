@@ -1,8 +1,8 @@
-import { Repo, RepoView } from "./types";
-import { collectRepoView } from "./RepoStatus";
-import { OutputManager } from "../output/OutputManager";
+import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import { Repo, RepoView } from "../../types";
+import { collectRepoView } from "./RepoStatus";
 
 export type RepoManagerListener = (repos: RepoView[]) => void;
 
@@ -109,7 +109,7 @@ export class RepoManager {
 			repos.push({ path: normalized, name: path.basename(normalized), level });
 		};
 
-		const workspaces = (await import("vscode")).default?.workspace?.workspaceFolders || [];
+		const workspaces = vscode.workspace.workspaceFolders || [];
 		for (const folder of workspaces) {
 			const root = folder.uri.fsPath;
 			if (this._isGitRepo(root)) {
